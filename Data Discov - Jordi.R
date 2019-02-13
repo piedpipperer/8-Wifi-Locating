@@ -25,6 +25,15 @@ source("4 - ElimWapsFromTrain - TrainWifi.R")
 
 
 
+#Wifi0 %>% unique() %>% filter( WAP105 < 0 & WAP105 > -30)
+
+WifiMelted %>% filter(WAP == 'WAP105' & SignalPow > 70)
+
+str(WifiMelted) #10613720
+str(WifiMelted %>% unique()) #
+
+WAP105 - 165544
+
 #density for power!
 # ggplot(data = WifiMelted %>% filter(TEST == FALSE)) +
 #   aes(x = SignalPow) +
@@ -32,7 +41,6 @@ source("4 - ElimWapsFromTrain - TrainWifi.R")
 #   theme_minimal()
 
 
-WAP105 - 165544
 
 WAP62, 65 , 66 (phones 7 and 19)
 WAP 83, 87
