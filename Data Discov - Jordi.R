@@ -17,13 +17,29 @@ source("2 - Reading CSV - Wifi0.R")
 #melting and initial updatessss
 source("3 - Melting&Update - WifiMelted.R")
 
+#writing csv with coordinates:
+#source("99 - WritingSpatialCSV - AllWifiAgg.R")
+
 #eliminate waps.
 source("4 - ElimWapsFromTrain - TrainWifi.R")
 
 
 
+#density for power!
+# ggplot(data = WifiMelted %>% filter(TEST == FALSE)) +
+#   aes(x = SignalPow) +
+#   geom_density(adjust = 1, fill = "#0c4c8a") +
+#   theme_minimal()
+
+
 WAP105 - 165544
 
+WAP62, 65 , 66 (phones 7 and 19)
+WAP 83, 87
+
+WAP 12?
+  
+  
 #not necessary
 # TempDF2 <- TrainWifi %>% filter(SignalPow != 0) %>% dplyr::select(WAP)
 # TestWifi2 <- 
@@ -337,118 +353,6 @@ Prediction = compute(Model, AllData@data[-fold,TrainingNames])
 
 
 
-
-#### Convert of AggInfo into grades ####
-#lets try an agg version of the data: 
-
-# TestWifiAgg <- TestWifi %>%  group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-#                                        #, USERID
-#                                        , PHONEID
-#                                        #timestamp...
-#                                        , WAP) %>% 
-#   summarize(SignalPow = mean(SignalPow))
-# 
-# TrainWifiAgg2 <- TrainWifi2 %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-#                                         #, USERID
-#                                         , PHONEID
-#                                         #timestamp...
-#                                         , WAP) %>% 
-#   summarize(SignalPow = median(SignalPow)) %>% filter (SignalPow != 0)
-
-AllWifiCoord <- WifiMelted %>%  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-                                       #, USERID
-                                       , PHONEID
-                                       #timestamp...
-                                       , WAP
-                                       , SignalPow) %>% filter (SignalPow != 0)
-
-
-
-esquisse::esquisser()
-
-
-#density for power!
-# ggplot(data = TrainWifi) +
-#   aes(x = SignalPow) +
-#   geom_density(adjust = 1, fill = "#0c4c8a") +
-#   theme_minimal()
-
-
-
-library(rgdal)
-library(raster)
-
-proj4string <- "+proj=utm +zone=31t +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs "
-
-proj4stringT <- "+proj=longlat +zone=31t +north  "
-
-AllWifiCoord$FLOOR <- as.numeric(AllWifiCoord$FLOOR) * 10
-
-# TEST <- TrainWifi %>% select(LONGITUDE,LATITUDE)
-# 
-# colnames(TEST)[1] <- "x"
-# colnames(TEST)[2] <- "y"
-# str(TEST)
-# 
-# pj <- rgdal::project(TEST, proj4string#, inverse=TRUE
-#               )
-
-
-#str(TrainWifi2)
-Look4Out <- TrainWifi2 %>% dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-                                         , USERID
-                                         , PHONEID, SignalPow
-                                         #timestamp...
-                                         , WAP) %>% filter (SignalPow != 0) %>% 
-                                  filter (SignalPow > 30)
-
-# Look4Out <- TrainWifi2 %>% filter (SignalPow > 30)
-
-
-Look4Out$TIMESTAMP <- NULL
-Look4Out$USERID <- NULL
-Look4Out$RELATIVEPOSITION <- NULL
-
-
-
-str(Look4Out)
-summary((Look4Out))
-coordinates(Look4Out) <- c("LONGITUDE", "LATITUDE")
-coordinates(TrainWifiAgg2) <- c("LONGITUDE", "LATITUDE")
-coordinates(AllWifiAgg) <- c("LONGITUDE", "LATITUDE")
-
-
-summary(Look4Out)
-#TrainWifi$LATITUDE
-proj4string(Look4Out) <- CRS(proj4string)
-proj4string(TrainWifiAgg2) <- CRS(proj4string)
-proj4string(AllWifiAgg) <- CRS(proj4string)
-
-#!is.numeric(TrainWifi)
-
-#validObject(TrainWifi)
-
-# 
-# print(
-# project(TrainWifi,proj4string)
-# )
-
-# select the appropiate dataframe to store..
-
-
-Utm <- spTransform(AllWifiAgg, proj4stringT)
-Utm4Out <- spTransform(Look4Out, proj4stringT)
-Utm$LONGITUDE
-Utm$LATITUDE
-
-Utm$optional <- NULL 
-
-#write.csv2(Utm,"testAndtrain2.csv") # this is for the kepler!!
-#write.csv(Utm,"testAndtrain.csv") # this is for the kepler!!
-
-write.csv2(Utm,"../csv/train2.csv")
-# write.csv2(Utm4Out,"../csv/looking4Outliers2.csv")
-# write.csv(Utm4Out,"../csv/looking4Outliers.csv")
 
 
 summary(TrainWifi)
