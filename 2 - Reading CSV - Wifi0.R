@@ -11,6 +11,10 @@ TrainWifi0$LATITUDE <- as.numeric(TrainWifi0$LATITUDE)
 TrainWifi0$FLOOR <- as.factor(TrainWifi0$FLOOR)
 TestWifi0$FLOOR <- as.factor(TestWifi0$FLOOR)
 
-TrainWifi0$TEST <- FALSE 
+
 TestWifi0$TEST <- TRUE 
-Wifi0 <- rbind(TrainWifi0,TestWifi0)
+TrainWifi0$TEST <- FALSE 
+
+Wifi0$BUILDINGID <- as.factor(Wifi0$BUILDINGID)
+Wifi0$SPACEID <- as.factor(Wifi0$SPACEID)
+Wifi0$RELATIVEPOSITION <- as.factor(Wifi0$RELATIVEPOSITION)

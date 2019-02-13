@@ -20,8 +20,8 @@
 
 
 
-AllWifiCoord <- WifiMelted %>%  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID#,RELATIVEPOSITION
-                                              #, USERID
+AllWifiCoord <- Wifi4Visual %>%  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID#,SPACEID#,RELATIVEPOSITION
+                                              , USERID
                                               , PHONEID
                                               , TEST
                                               #timestamp...
@@ -89,7 +89,12 @@ Utm <- spTransform(AllWifiCoord, proj4stringT)
 
 Utm$optional <- NULL 
 
+test <- Wifi4Visual %>% filter( PHONEID %in% c(7,19) & BUILDINGID == 2 & FLOOR %in% c(3,4) 
+                               &
+                                SignalPow > 30)
 #esquisse::esquisser()
+
+summary(test)
 
 write.csv2(Utm,"../csv/testAndtrain2.csv") # this is for the kepler!!
 write.csv(Utm,"../csv/testAndtrain.csv") # this is for the kepler!!

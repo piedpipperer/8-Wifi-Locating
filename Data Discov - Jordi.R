@@ -14,25 +14,27 @@ source("1 - Inicialization and Libraries.R")
 #first read and binding of data.
 source("2 - Reading CSV - Wifi0.R")
 
-#melting and initial updatessss
+#melting and initial updates
 source("3 - Melting&Update - WifiMelted.R")
+# has the 0s, and has also dups which could not be eliminated, 
+#they are after removing the 0s.
+
+# eliminate 100s and duplicates!!
+Wifi4Visual <- WifiMelted %>% filter(SignalPow != 0) %>% unique() 
 
 #writing csv with coordinates:
 #source("99 - WritingSpatialCSV - AllWifiAgg.R")
 
-#eliminate waps.
+#eliminate useles waps , Test Data  & convert the >-30 into normal signals 
+#over WifiMelted
 source("4 - ElimWapsFromTrain - TrainWifi.R")
 
 
 
-#Wifi0 %>% unique() %>% filter( WAP105 < 0 & WAP105 > -30)
+#now there are no duplicates!! GOOD
+#Wifi4Visual %>% filter(WAP == 'WAP105' & SignalPow > 70)
 
-WifiMelted %>% filter(WAP == 'WAP105' & SignalPow > 70)
 
-str(WifiMelted) #10613720
-str(WifiMelted %>% unique()) #
-
-WAP105 - 165544
 
 #density for power!
 # ggplot(data = WifiMelted %>% filter(TEST == FALSE)) +
@@ -42,60 +44,68 @@ WAP105 - 165544
 
 
 
-WAP62, 65 , 66 (phones 7 and 19)
-WAP 83, 87
-
-WAP 12?
-  
+# WAP105 - 165544
+# WAP62, 65 , 66 (phones 7 and 19)
+# WAP 83, 87
+# 
+# WAP 12?
+#   
   
 #not necessary
 # TempDF2 <- TrainWifi %>% filter(SignalPow != 0) %>% dplyr::select(WAP)
 # TestWifi2 <- 
 #   TestWifi %>% subset(WAP %in% TempDF2$WAP)
 
-str(TrainWifi2)
 
 
 #esquisse::esquisser()
 #### uniforming location disstributions ####
          
-str(TrainWifi2)
-TrainWifiAgg <- TrainWifi2 %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
+# str(TrainWifi2)
+TrainWifiAgg <- TrainWifi %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
                                         #, USERID
                                         #, PHONEID
                                         #timestamp...
-                                        , WAP) %>% 
+                                        , WAP) %>%
   summarize(SignalPow = as.numeric(mean(SignalPow)))
 
 
-
-
-#### Dummify the data ####
-# TrainWifiFlor0 <- TrainWifi2  %>% filter(FLOOR == 0)  %>% 
-#   select(LONGITUDE,LATITUDE,SignalPow,WAP)
-# dfdummy <- dummyVars(" ~ .", data = TrainWifiFlor0)
-# 
-# str(TrainWifiFlor0)
-# 
-# TrainWifiFlor0Dum <- data.frame(predict(dfdummy, newdata = TrainWifiFlor0))
-# str(TrainWifiFlor0Dum)
-
-
-
-
-
 library(tidyr)
-TrainWifi3 <- TrainWifi2  %>%
+TrainWifi3 <- TrainWifiAgg %>% dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
+                                        #, USERID
+                                        #, PHONEID
+                                        #timestamp...
+                                        , WAP
+                                        ,SignalPow) %>% # unique()
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
-
-TestWifi2 <- TestWifi %>%  tidyr::spread(WAP, SignalPow) 
-
-
-str(TestWifi2)
-str(TrainWifi3)
+  
 
 
 str(TrainWifi3)
+
+
+str(TrainWifi3)
+
+
+#### lets try to predict Building, and make it very accurate ####
+TrainWifiBuild <- TrainWifi3
+TrainWifiBuild$LONGITUDE <- NULL
+TrainWifiBuild$LATITUDE <- NULL
+TrainWifiBuild$FLOOR <- NULL
+TrainWifiBuild$SPACEID <- NULL
+TrainWifiBuild$RELATIVEPOSITION <- NULL
+
+
+BuildControl <- trainControl(method="repeatedcv"
+                             ,classProbs = TRUE
+                             , number=9, repeats=2)
+
+
+RfBuildFit <- 
+  train(BUILDINGID ~ ., data=TrainWifiBuild, method="rf", 
+        #metric=metric,
+        trControl=BuildControl)
+
 
 
 
@@ -110,7 +120,7 @@ TrainWifiFloor$RELATIVEPOSITION <- NULL
 TrainWifiFloor$FLOOR <- as.factor(TrainWifiFloor$FLOOR)
 
 FloorControl <- trainControl(method="repeatedcv"
-                             #,classProbs = TRUE
+                             ,classProbs = TRUE
                         , number=9, repeats=2)
 
 
