@@ -20,7 +20,7 @@ source("3 - Melting&Update - WifiMelted.R")
 # has the 0s, and has also dups which could not be eliminated, 
 #they are after removing the 0s.
 
-# eliminate 100s and duplicates!!
+# eliminate 100s and duplicates for visualization:
 Wifi4Visual <- WifiMelted %>% filter(SignalPow != 0) %>% unique() 
 
 #writing csv with coordinates:
@@ -33,7 +33,7 @@ source("4 - ElimWapsFromTrain - TrainWifi.R")
 summary(TrainWifi)
 
 
-#Creating a TEST set (FROM the signal modified already):
+#Creating a TEST set (FROM the signal already adjusted):
 TestWifi <- WifiMelted  %>% filter(TEST == TRUE ) %>% 
   dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
     , USERID
@@ -44,9 +44,9 @@ TestWifi <- WifiMelted  %>% filter(TEST == TRUE ) %>%
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
 
 
-#now there are no duplicates!! GOOD
-#Wifi4Visual %>% filter(WAP == 'WAP105' & SignalPow > 70)
 
+#Wifi4Visual %>% filter(WAP == 'WAP105' & SignalPow > 70)
+#now there are no duplicates!! GOOD
 
 
 #density for power!
@@ -57,17 +57,13 @@ TestWifi <- WifiMelted  %>% filter(TEST == TRUE ) %>%
 
 
 
+# problematic WAPs of very powerful signals.
 # WAP105 - 165544
 # WAP62, 65 , 66 (phones 7 and 19)
 # WAP 83, 87
 # 
 # WAP 12?
 #   
-  
-#not necessary
-# TempDF2 <- TrainWifi %>% filter(SignalPow != 0) %>% dplyr::select(WAP)
-# TestWifi2 <- 
-#   TestWifi %>% subset(WAP %in% TempDF2$WAP)
 
 
 
@@ -104,13 +100,6 @@ str(TrainWifi3)
 TrainWifiBuild <- TrainWifi3 
 
 
-#levels(TrainWifiBuild$BUILDINGID) <- c("B0", "B1","B2")
-       
-
-# TrainWifiBuild <- mutate(TrainWifi3,case_when(BUILDINGID == 0 ~ 'X0',
-#                                       BUILDINGID == 1 ~ 'X1',
-#                                       BUILDINGID == 2 ~ 'X2') )
-
 #TrainWifiBuild$BUILDING2 <- as.factor(TrainWifiBuild$BUILDING2)
 
 TrainWifiBuild$LONGITUDE <- NULL
@@ -126,7 +115,7 @@ summary(TrainWifiBuild)
 
 BuildControl <- trainControl(method="repeatedcv"
                              ,classProbs = TRUE
-                             , number=9, repeats=2)
+                             , number=6, repeats=2)
 
 
 #### Enable parallel processing ####
@@ -139,36 +128,62 @@ on.exit(stopCluster(cl))
 set.seed(123)
 RfBuildFit <- 
   train(BUILDINGID ~ ., data=TrainWifiBuild, method="rf", 
-        tuneLength = 5,
+        tuneLength = 2,
        # metric = "ROC",
         trControl=BuildControl)
 
-saveRDS(RfBuildFit, "BuildingRF.rds") 
+saveRDS(RfBuildFit, "./models/BuildingRF.rds") 
+
+library(xgboost)
+set.seed(123)
+XGBoostBuildFit <- train(BUILDINGID~., 
+                         data = TrainWifiBuild,
+                         method = "xgbTree",
+                         trControl = BuildControl#,tuneGrid=parametersGrid
+)
+saveRDS(XGBoostBuildFit, "BuildXGBoost.rds") 
 
 
 GenericTrClasses <- predict(RfBuildFit, newdata = TrainWifiBuild)
 Matrix <-   confusionMatrix(GenericTrClasses, TrainWifiBuild$BUILDINGID)
 
 
-GenericTestClasses <- predict(RfBuildFit, newdata = Wifi0 %>% filter(TEST = TRUE))
-Matrix <-   confusionMatrix(GenericTrClasses, TrainWifiBuild$BUILDINGID)
+GenericTestClasses <- predict(RfBuildFit, newdata = TestWifi)
+Matrix <-   confusionMatrix(GenericTestClasses, TestWifi$BUILDINGID)
+
+TestWifi$PredictedB <- GenericTestClasses
+
+TestWifi
+
+TestProbs <- predict(RfBuildFit, 
+                               newdata = TestWifi, type = "prob")
+
+TrainProbs <- predict(RfBuildFit, 
+                 newdata = TrainWifiBuild, type = "prob")
+
+# TestProbs
+# TrainProbs
 
 
 
-ProbsTest.list[[y]] <- predict(Models.list[[y]], 
-                               newdata = testSet, type = "prob")
+#for (iteration in c("B0", "B1","B2")) 
+#{ 
+  iteration <- "B0"
+  
+  IterateDF1 <- 
+  TestWifi %>% filter(PredictedB %in% c(iteration)) %>% melt(WAP,SignalPow)
+  
+  colnames(WifiMelted)[?] <- "WAP"
+  colnames(WifiMelted)[?] <- "SignalPow"
+  
+  IterateDF2 <- RemoveBotheringWAPs(IterateDF1
+                                   )
+    
+  
+  TestWifi$PredictedB
 
-TempProbs = ProbsTest.list[[y]]
-RocTest.list[[y]]   <- roc( response = testSet$brand,
-                            predictor = TempProbs[,"Acer"]
-                            ,levels = rev(levels(testSet$brand))
-)
 
-
-
-
-
-
+#}
 
 #### lets try to predict floor, and make it very accurate ####
 TrainWifiFloor <- TrainWifi3
