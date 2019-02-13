@@ -7,106 +7,23 @@
 getwd()
 getwd()
 
+setwd("./8-Wifi-locating/")
 
-#strsplit(version[['version.string']], ' ')[[1]][3]
+source("1 - Inicialization and Libraries.R")
 
+#first read and binding of data.
+source("2 - Reading CSV - Wifi0.R")
 
-#install.packages("Rserve")
-library(esquisse)
+#melting and initial updatessss
+source("3 - Melting&Update - WifiMelted.R")
 
-
-
-#### Load Libraries ####
-library(pacman)
-pacman::p_load(readr, caret, plotly, ggplot2, 
-               labeling, promises, ggridges, 
-               doParallel, mlbench,# inum, e1071, 
-               corrplot#, ggpubr
-               , rpart, rpart.plot, gbm
-               , boot, dplyr,
-               reshape, Rserve#, tidyvers
-               , padr)
-
-#library(proj4)
-
-#### Enable parallel processing ####
-no_cores <- detectCores() - 1
-cl <- makeCluster(no_cores)
-registerDoParallel(cl)
-on.exit(stopCluster(cl))
-
-TrainWifi0 <- read.csv("./csv/trainingData.csv")
-TestWifi0 <- read.csv("./csv/validationData.csv")
-
-TestWifi0$LONGITUDE <- as.numeric(TestWifi0$LONGITUDE)
-TestWifi0$LATITUDE <- as.numeric(TestWifi0$LATITUDE)
-
-TrainWifi0$LONGITUDE <- as.numeric(TrainWifi0$LONGITUDE)
-TrainWifi0$LATITUDE <- as.numeric(TrainWifi0$LATITUDE)
-
-TrainWifi0$FLOOR <- as.factor(TrainWifi0$FLOOR)
-TestWifi0$FLOOR <- as.factor(TestWifi0$FLOOR)
+#eliminate waps.
+source("4 - ElimWapsFromTrain - TrainWifi.R")
 
 
-str(TrainWifi0) #19937
-
-TrainWifi <- TrainWifi0 %>% melt( id.vars = c("LONGITUDE","LATITUDE","FLOOR","BUILDINGID","SPACEID"
-                                  ,"RELATIVEPOSITION","USERID","PHONEID",
-                                   "TIMESTAMP")
-     ) %>% #filter( value != 100) %>% 
-  mutate( value = value + 105) %>% 
-  mutate( value = case_when(value == 205 ~ 0,
-                            TRUE ~ value) 
-  )
-
-
-TestWifi <-   melt(TestWifi0
-                   , id.vars = c("LONGITUDE","LATITUDE","FLOOR","BUILDINGID","SPACEID"
-                                 ,"RELATIVEPOSITION","USERID","PHONEID",
-                               "TIMESTAMP")
-  ) %>% #filter( value != 100) %>% 
-  mutate( value = value + 105)  %>% 
-  mutate( value = case_when(value == 205 ~ 0,
-                            TRUE ~ value) 
-  )
-#str(TestWifi)
-
-#taken the 100s,  
-#str(TrainWifiD) #10.008.477
-
-colnames(TrainWifi)[10] <- "WAP"
-colnames(TrainWifi)[11] <- "SignalPow"
-
-colnames(TestWifi)[10] <- "WAP"
-colnames(TestWifi)[11] <- "SignalPow"
-
-
-TestWifi$SignalPow = as.double(TestWifi$SignalPow)
-
-
-str(TrainWifi) #
-#summary(is.na(TrainWifi$LATITUDE))
-
-summary(TrainWifi)
-
-str(TrainWifi) #10367240
-str(TestWifi)
-
-GoodWAPs <- TrainWifi %>% group_by(
-  #, USERID
-  #, PHONEID
-  #timestamp...
-  #,
-  WAP) %>% 
-  summarize(SignalPow = as.numeric(sum(SignalPow))) %>%
-  filter(SignalPow > 0)
-
-#### eliminating useless WAPs ####
-TempDF <- TestWifi %>% filter(SignalPow != 0) %>% dplyr::select(WAP)
-TrainWifi2 <- TrainWifi %>% subset(WAP %in% TempDF$WAP)  %>% subset(WAP %in% GoodWAPs$WAP) 
-#same should be done for Test Set....
 
 WAP105 - 165544
+
 #not necessary
 # TempDF2 <- TrainWifi %>% filter(SignalPow != 0) %>% dplyr::select(WAP)
 # TestWifi2 <- 
@@ -115,7 +32,7 @@ WAP105 - 165544
 str(TrainWifi2)
 
 
-esquisse::
+#esquisse::esquisser()
 #### uniforming location disstributions ####
          
 str(TrainWifi2)
@@ -438,38 +355,23 @@ Prediction = compute(Model, AllData@data[-fold,TrainingNames])
 #                                         , WAP) %>% 
 #   summarize(SignalPow = median(SignalPow)) %>% filter (SignalPow != 0)
 
-TestWifiAgg <- TestWifi %>%  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
+AllWifiCoord <- WifiMelted %>%  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
                                        #, USERID
                                        , PHONEID
                                        #timestamp...
                                        , WAP
                                        , SignalPow) %>% filter (SignalPow != 0)
 
-TrainWifiAgg2 <- TrainWifi2 %>% dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-                                         #, USERID
-                                         , PHONEID
-                                         #timestamp...
-                                         , WAP
-                                         , SignalPow)  %>% filter (SignalPow != 0 ) 
 
 
-
-str(TestWifi)
-str(TrainWifi2)
-
-TrainWifiAgg2$TestOrTrain <- "TRAIN"
-TestWifiAgg$TestOrTrain <- "TEST"
-
-AllWifiAgg <- rbind(TestWifiAgg,TrainWifiAgg2)
-str(AllWifiAgg)
 esquisse::esquisser()
 
 
 #density for power!
-ggplot(data = TrainWifi) +
-  aes(x = SignalPow) +
-  geom_density(adjust = 1, fill = "#0c4c8a") +
-  theme_minimal()
+# ggplot(data = TrainWifi) +
+#   aes(x = SignalPow) +
+#   geom_density(adjust = 1, fill = "#0c4c8a") +
+#   theme_minimal()
 
 
 
@@ -480,7 +382,7 @@ proj4string <- "+proj=utm +zone=31t +north +ellps=WGS84 +datum=WGS84 +units=m +n
 
 proj4stringT <- "+proj=longlat +zone=31t +north  "
 
-AllWifiAgg$FLOOR <- as.numeric(AllWifiAgg$FLOOR) * 10
+AllWifiCoord$FLOOR <- as.numeric(AllWifiCoord$FLOOR) * 10
 
 # TEST <- TrainWifi %>% select(LONGITUDE,LATITUDE)
 # 
@@ -544,9 +446,9 @@ Utm$optional <- NULL
 #write.csv2(Utm,"testAndtrain2.csv") # this is for the kepler!!
 #write.csv(Utm,"testAndtrain.csv") # this is for the kepler!!
 
-write.csv2(Utm,"./csv/train2.csv")
-# write.csv2(Utm4Out,"./csv/looking4Outliers2.csv")
-# write.csv(Utm4Out,"./csv/looking4Outliers.csv")
+write.csv2(Utm,"../csv/train2.csv")
+# write.csv2(Utm4Out,"../csv/looking4Outliers2.csv")
+# write.csv(Utm4Out,"../csv/looking4Outliers.csv")
 
 
 summary(TrainWifi)
