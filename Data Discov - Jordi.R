@@ -13,6 +13,7 @@ source("1 - Inicialization and Libraries.R")
 
 #first read and binding of data.
 source("2 - Reading CSV - Wifi0.R")
+#summary(Wifi0)
 
 #melting and initial updates
 source("3 - Melting&Update - WifiMelted.R")
@@ -29,6 +30,18 @@ Wifi4Visual <- WifiMelted %>% filter(SignalPow != 0) %>% unique()
 #over WifiMelted
 source("4 - ElimWapsFromTrain - TrainWifi.R")
 
+summary(TrainWifi)
+
+
+#Creating a TEST set (FROM the signal modified already):
+TestWifi <- WifiMelted  %>% filter(TEST == TRUE ) %>% 
+  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
+    , USERID
+    , PHONEID
+    ,TIMESTAMP
+    , WAP
+    ,SignalPow) %>% # unique()
+  tidyr::spread(WAP, SignalPow, convert = FALSE) 
 
 
 #now there are no duplicates!! GOOD
@@ -67,7 +80,7 @@ TrainWifiAgg <- TrainWifi %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACE
                                         #, PHONEID
                                         #timestamp...
                                         , WAP) %>%
-  summarize(SignalPow = as.numeric(mean(SignalPow)))
+  summarize(SignalPow = as.numeric(median(SignalPow)))
 
 
 library(tidyr)
@@ -88,23 +101,71 @@ str(TrainWifi3)
 
 
 #### lets try to predict Building, and make it very accurate ####
-TrainWifiBuild <- TrainWifi3
+TrainWifiBuild <- TrainWifi3 
+
+
+#levels(TrainWifiBuild$BUILDINGID) <- c("B0", "B1","B2")
+       
+
+# TrainWifiBuild <- mutate(TrainWifi3,case_when(BUILDINGID == 0 ~ 'X0',
+#                                       BUILDINGID == 1 ~ 'X1',
+#                                       BUILDINGID == 2 ~ 'X2') )
+
+#TrainWifiBuild$BUILDING2 <- as.factor(TrainWifiBuild$BUILDING2)
+
 TrainWifiBuild$LONGITUDE <- NULL
 TrainWifiBuild$LATITUDE <- NULL
 TrainWifiBuild$FLOOR <- NULL
 TrainWifiBuild$SPACEID <- NULL
+#TrainWifiBuild$BUILDINGID <- NULL
 TrainWifiBuild$RELATIVEPOSITION <- NULL
+#TrainWifiBuild$BUILDINGID <- as.numeric(TrainWifiBuild$BUILDINGID )
 
+
+summary(TrainWifiBuild)
 
 BuildControl <- trainControl(method="repeatedcv"
                              ,classProbs = TRUE
                              , number=9, repeats=2)
 
 
+#### Enable parallel processing ####
+no_cores <- detectCores() - 1
+cl <- makeCluster(no_cores)
+registerDoParallel(cl)
+on.exit(stopCluster(cl))
+
+
+set.seed(123)
 RfBuildFit <- 
   train(BUILDINGID ~ ., data=TrainWifiBuild, method="rf", 
-        #metric=metric,
+        tuneLength = 5,
+       # metric = "ROC",
         trControl=BuildControl)
+
+saveRDS(RfBuildFit, "BuildingRF.rds") 
+
+
+GenericTrClasses <- predict(RfBuildFit, newdata = TrainWifiBuild)
+Matrix <-   confusionMatrix(GenericTrClasses, TrainWifiBuild$BUILDINGID)
+
+
+GenericTestClasses <- predict(RfBuildFit, newdata = Wifi0 %>% filter(TEST = TRUE))
+Matrix <-   confusionMatrix(GenericTrClasses, TrainWifiBuild$BUILDINGID)
+
+
+
+ProbsTest.list[[y]] <- predict(Models.list[[y]], 
+                               newdata = testSet, type = "prob")
+
+TempProbs = ProbsTest.list[[y]]
+RocTest.list[[y]]   <- roc( response = testSet$brand,
+                            predictor = TempProbs[,"Acer"]
+                            ,levels = rev(levels(testSet$brand))
+)
+
+
+
 
 
 
