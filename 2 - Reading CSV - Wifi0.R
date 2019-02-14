@@ -20,6 +20,7 @@ Wifi0 <- rbind(TrainWifi0,TestWifi0)
 Wifi0$BUILDINGID <- as.factor(Wifi0$BUILDINGID)
 
 levels(Wifi0$BUILDINGID) <- c("B0", "B1","B2")
+levels(Wifi0$FLOOR) <- c("F0", "F1","F2","F3","F4")
 
 Wifi0$SPACEID <- as.factor(Wifi0$SPACEID)
 Wifi0$RELATIVEPOSITION <- as.factor(Wifi0$RELATIVEPOSITION)

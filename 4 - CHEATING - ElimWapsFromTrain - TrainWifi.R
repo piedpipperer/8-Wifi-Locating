@@ -12,39 +12,40 @@ RemoveBotheringWAPs <- function(TrainDF) {
            subset(WAP %in% GoodWAPs$WAP))
 }
 
-# 
+
+
+
+
 #### eliminating useless WAPs ####
-#defining the waps employed in Test.
-TempDF <- WifiMelted %>% filter(TEST == TRUE ) %>% 
+#defining the waps with signal > 0
+TempDF <- WifiMelted %>% dplyr::filter(TEST == TRUE ) %>% 
   filter(SignalPow != 0) %>% dplyr::select(WAP)
 
 
 
-#Creating a trainning set with only the relevant waps:
-TrainWifi <- RemoveBotheringWAPs(WifiMelted  %>% filter(TEST == FALSE )   #lets do it more easily
-      ) %>% subset(WAP %in% TempDF$WAP)  %>% 
-  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-                                                  #, USERID
-                                                  #, PHONEID
-                                                  #timestamp...
-                           , WAP
-                                                  ,SignalPow) %>% 
-                                                 mutate( SignalPow = case_when(SignalPow > 75 & SignalPow < 200  
-                                                                           ~ SignalPow - 40,
-                                                  TRUE ~ SignalPow) 
-                                                  )
+TrainWifi <- RemoveBotheringWAPs(
+  WifiMelted %>% subset(WAP %in% TempDF$WAP) %>% 
+  group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID#,SPACEID,RELATIVEPOSITION 
+             #, USERID
+             #, PHONEID
+             #timestamp...
+             , WAP) %>%
+  sample_n(1) %>% ungroup()) %>% select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID, WAP, SignalPow, KEY)
+
+# 
 
 
-
-TestWifi <- WifiMelted  %>% filter(TEST == TRUE ) %>% 
-  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-                , USERID
-                , PHONEID
-                ,TIMESTAMP
-                , WAP
-                ,SignalPow) %>% # unique()
+TestWifiTemp <- WifiMelted %>%
+subset(!KEY %in% TrainWifi$KEY) %>% 
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
-  
+
+
+TestWifi <- TestWifiTemp %>% select(LONGITUDE, LATITUDE, FLOOR, BUILDINGID, TEST, WAP, SignalPow, KEY) %>% 
+  tidyr::spread(WAP, SignalPow, convert = FALSE) 
+
+
+
+
 
 
 TrainWifiAgg <- TrainWifi %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION 
@@ -53,6 +54,7 @@ TrainWifiAgg <- TrainWifi %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACE
                                        #timestamp...
                                        , WAP) %>%
   summarize(SignalPow = as.numeric(median(SignalPow))) %>% ungroup()
+
 
 
 # #old way (no function)
