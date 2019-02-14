@@ -10,7 +10,6 @@ RemoveBotheringWAPs <- function(TrainDF) {
     
     return(TrainDF %>% 
            subset(WAP %in% GoodWAPs$WAP))
-  
 }
 
 # 
@@ -33,7 +32,12 @@ TrainWifi <- RemoveBotheringWAPs(WifiMelted  %>% filter(TEST == FALSE )) %>%
                                                   TRUE ~ SignalPow) 
                                                   )
 
-# 
+
+
+
+
+
+
 # #old way (no function)
 # 
 # GoodWAPs <- Wifi4Visual %>% filter(TEST == FALSE) %>% group_by(

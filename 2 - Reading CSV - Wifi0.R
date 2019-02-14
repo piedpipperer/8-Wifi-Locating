@@ -15,6 +15,11 @@ TestWifi0$FLOOR <- as.factor(TestWifi0$FLOOR)
 TestWifi0$TEST <- TRUE 
 TrainWifi0$TEST <- FALSE 
 
+
+Wifi0 <- rbind(TrainWifi0,TestWifi0)
+Wifi0$BUILDINGID <- as.factor(Wifi0$BUILDINGID)
+
 levels(Wifi0$BUILDINGID) <- c("B0", "B1","B2")
+
 Wifi0$SPACEID <- as.factor(Wifi0$SPACEID)
 Wifi0$RELATIVEPOSITION <- as.factor(Wifi0$RELATIVEPOSITION)

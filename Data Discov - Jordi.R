@@ -71,24 +71,26 @@ TestWifi <- WifiMelted  %>% filter(TEST == TRUE ) %>%
 #### uniforming location disstributions ####
          
 # str(TrainWifi2)
-TrainWifiAgg <- TrainWifi %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
+TrainWifiAgg <- TrainWifi %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION 
                                         #, USERID
                                         #, PHONEID
                                         #timestamp...
                                         , WAP) %>%
-  summarize(SignalPow = as.numeric(median(SignalPow)))
-
+  summarize(SignalPow = as.numeric(median(SignalPow))) %>% ungroup()
+# 291k rows
+# unique()
 
 library(tidyr)
 TrainWifi3 <- TrainWifiAgg %>% dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
                                         #, USERID
                                         #, PHONEID
                                         #timestamp...
-                                        , WAP
-                                        ,SignalPow) %>% # unique()
+                                        ,
+                                        WAP
+                                        ,SignalPow) %>% 
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
   
-
+#TrainWifi3 <- cbind(TrainWifiAgg$WAP,TrainWifiAgg$SignalPow)
 
 str(TrainWifi3)
 
@@ -98,7 +100,7 @@ str(TrainWifi3)
 
 #### lets try to predict Building, and make it very accurate ####
 TrainWifiBuild <- TrainWifi3 
-
+#TrainWifiBuild <- cbind(TrainWifi3$WAP,TrainWifi3$SignalPow)
 
 #TrainWifiBuild$BUILDING2 <- as.factor(TrainWifiBuild$BUILDING2)
 
@@ -112,6 +114,16 @@ TrainWifiBuild$RELATIVEPOSITION <- NULL
 
 
 summary(TrainWifiBuild)
+
+#little test on how many waps are reduced: (fro the 300s)
+TestDF <- 
+  #WeHaveBuilding
+  TrainWifiAgg   %>%
+  filter(BUILDINGID #PredictedB 
+         %in% c("B0"))  
+
+
+
 
 BuildControl <- trainControl(method="repeatedcv"
                              ,classProbs = TRUE
@@ -141,7 +153,7 @@ XGBoostBuildFit <- train(BUILDINGID~.,
                          method = "xgbTree",
                          trControl = BuildControl#,tuneGrid=parametersGrid
 )
-saveRDS(XGBoostBuildFit, "BuildXGBoost.rds") 
+saveRDS(XGBoostBuildFit, "./models/BuildXGBoost.rds") 
 
 
 GenericTrClasses <- predict(RfBuildFit, newdata = TrainWifiBuild)
@@ -151,9 +163,9 @@ Matrix <-   confusionMatrix(GenericTrClasses, TrainWifiBuild$BUILDINGID)
 GenericTestClasses <- predict(RfBuildFit, newdata = TestWifi)
 Matrix <-   confusionMatrix(GenericTestClasses, TestWifi$BUILDINGID)
 
-TestWifi$PredictedB <- GenericTestClasses
+test1 <- TrainWifiBuild
+test1$PredictedB <-  GenericTrClasses
 
-TestWifi
 
 TestProbs <- predict(RfBuildFit, 
                                newdata = TestWifi, type = "prob")
@@ -164,23 +176,40 @@ TrainProbs <- predict(RfBuildFit,
 # TestProbs
 # TrainProbs
 
+summary(
+  Prueba
+)
+
+Prueba <- TrainWifiBuild
+Prueba$PredictedB <- GenericTrClasses
+  
+WeHaveBuilding <- cbind(Prueba$PredictedB,TrainWifiBuild)
+colnames(WeHaveBuilding)[1]   <- "PredictedB"
+
+        
 
 
-#for (iteration in c("B0", "B1","B2")) 
+  #for (iteration in c("B0", "B1","B2")) 
 #{ 
   iteration <- "B0"
   
   IterateDF1 <- 
-  TestWifi %>% filter(PredictedB %in% c(iteration)) %>% melt(WAP,SignalPow)
+    WeHaveBuilding %>%  melt ( id.vars = c("BUILDINGID","PredictedB")
+    )  %>%
+    filter(PredictedB %in% c(iteration))   %>% 
+    #gather(variable, value, -WAP) 
+    
+ 
   
-  colnames(WifiMelted)[?] <- "WAP"
-  colnames(WifiMelted)[?] <- "SignalPow"
+  colnames(WifiMelted)[3] <- "WAP"
+  colnames(WifiMelted)[4] <- "SignalPow"
   
   IterateDF2 <- RemoveBotheringWAPs(IterateDF1
                                    )
-    
+  IterateDF2 %>% # unique()
+    tidyr::spread(WAP, SignalPow, convert = FALSE) 
   
-  TestWifi$PredictedB
+  TestWifi$PredictedB 
 
 
 #}
