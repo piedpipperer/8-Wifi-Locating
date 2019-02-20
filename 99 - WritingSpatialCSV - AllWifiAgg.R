@@ -96,7 +96,7 @@ test <- Wifi4Visual %>% filter( PHONEID %in% c(7,19) & BUILDINGID == 2 & FLOOR %
 
 summary(test)
 
-write.csv2(Utm,"../csv/testAndtrain2.csv") # this is for the kepler!!
+write.csv2(Utm,"../csv/testAndtrain2.csv") # this is for the rtableau!!
 write.csv(Utm,"../csv/testAndtrain.csv") # this is for the kepler!!
 
 #write.csv2(Utm,"../csv/train2.csv")

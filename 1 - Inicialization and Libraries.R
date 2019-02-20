@@ -13,7 +13,7 @@ library(esquisse)
 library(pacman)
 pacman::p_load(readr, caret, plotly, ggplot2, 
                labeling, promises, ggridges, 
-               doParallel, mlbench,# inum, e1071, 
+               doParallel,  e1071, mlbench,# inum,
                corrplot#, ggpubr
                , rpart, rpart.plot, gbm
                , boot, dplyr,

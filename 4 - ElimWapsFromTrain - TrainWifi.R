@@ -20,7 +20,7 @@ TempDF <- WifiMelted %>% filter(TEST == TRUE ) %>%
 
 
 
-#Creating a trainning set with only the relevant waps:
+#Creating a trainning set with only the relevant Waps:
 TrainWifi <- RemoveBotheringWAPs(WifiMelted  %>% filter(TEST == FALSE )   #lets do it more easily
       ) %>% subset(WAP %in% TempDF$WAP)  %>% 
   dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
@@ -28,11 +28,7 @@ TrainWifi <- RemoveBotheringWAPs(WifiMelted  %>% filter(TEST == FALSE )   #lets 
                                                   #, PHONEID
                                                   #timestamp...
                            , WAP
-                                                  ,SignalPow) %>% 
-                                                 mutate( SignalPow = case_when(SignalPow > 75 & SignalPow < 200  
-                                                                           ~ SignalPow - 40,
-                                                  TRUE ~ SignalPow) 
-                                                  )
+                                                  ,SignalPow)  
 
 
 
@@ -47,12 +43,13 @@ TestWifi <- WifiMelted  %>% filter(TEST == TRUE ) %>%
   
 
 
-TrainWifiAgg <- TrainWifi %>% group_by(LONGITUDE,LATITUDE,FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION 
+TrainWifiAgg <- TrainWifi %>% group_by(#LONGITUDE,LATITUDE,
+                                       FLOOR,BUILDINGID#,SPACEID,RELATIVEPOSITION 
                                        #, USERID
                                        #, PHONEID
                                        #timestamp...
                                        , WAP) %>%
-  summarize(SignalPow = as.numeric(median(SignalPow))) %>% ungroup()
+ sample_n(1000000) summarize(SignalPow = as.numeric(median(SignalPow))) %>% ungroup()
 
 
 # #old way (no function)
