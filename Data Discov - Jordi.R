@@ -22,6 +22,7 @@ source("3 - Melting&Update - WifiMelted.R")
 
 # eliminate 100s and duplicates for visualization:
 Wifi4Visual <- WifiMelted %>% filter(SignalPow != 0) %>% unique() 
+#esquisse::esquisser()
 
 #writing csv with coordinates:
 #source("99 - WritingSpatialCSV - AllWifiAgg.R")
@@ -31,26 +32,10 @@ Wifi4Visual <- WifiMelted %>% filter(SignalPow != 0) %>% unique()
 #source("4 - ElimWapsFromTrain - TrainWifi.R")
 source("4 - CHEATING - ElimWapsFromTrain - TrainWifi.R")
 
-str(WifiMelted)   #10613720
-str(TrainWifi4BAndF) # 	4418440
-tail(TrainWifi4BAndF)
-str(TestWifi4BAndF) #6195280
-
-
-#Creating a TEST set (FROM the signal already adjusted):
-
-
-
-#Wifi4Visual %>% filter(WAP == 'WAP105' & SignalPow > 70)
-#now there are no duplicates!! GOOD
-
-
-#density for power!
-# ggplot(data = WifiMelted %>% filter(TEST == FALSE)) +
-#   aes(x = SignalPow) +
-#   geom_density(adjust = 1, fill = "#0c4c8a") +
-#   theme_minimal()
-
+# str(WifiMelted)   #10613720
+# str(TrainWifi4BAndF) # 	4418440
+# tail(TrainWifi4BAndF)
+# str(TestWifi4BAndF) #6195280
 
 
 # problematic WAPs of very powerful signals.
@@ -60,185 +45,6 @@ str(TestWifi4BAndF) #6195280
 # 
 # WAP 12?
 #   
-
-
-
-#esquisse::esquisser()
-#### uniforming location disstributions ####
-
-
-summary(is.na(TrainWifi))
-
-
-library(tidyr)
-# TrainWifi3 <- TrainWifiAllLocs %>% dplyr::select(LONGITUDE,LATITUDE,
-#                                        FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-#                                         , USERID
-#                                         , PHONEID
-#                                         ,TIMESTAMP
-#                                         ,
-#                                         WAP
-#                                         ,SignalPow) %>% 
-#   tidyr::spread(WAP, SignalPow, convert = FALSE) 
-
-#my trainning set:
-#TrainWifiAllLocsUnm
-
-#summary(is.na(TrainWifi3))
-
-#TrainWifi3 <- cbind(TrainWifiAgg$WAP,TrainWifiAgg$SignalPow)
-
-str(TrainWifi3)
-
-
-str(TrainWifi3)
-
-
-#### lets try to predict Building, and make it very accurate ####
-TrainWifiBuild <- TrainWifiAllLocsUnm  %>% ungroup()
-#TrainWifiBuild <- cbind(TrainWifi3$WAP,TrainWifi3$SignalPow)
-
-#TrainWifiBuild$BUILDING2 <- as.factor(TrainWifiBuild$BUILDING2)
-
-TrainWifiBuild$LONGITUDE <- NULL
-TrainWifiBuild$LATITUDE <- NULL
-TrainWifiBuild$FLOOR <- NULL
-TrainWifiBuild$SPACEID <- NULL
-#TrainWifiBuild$BUILDINGID <- NULL
-TrainWifiBuild$RELATIVEPOSITION <- NULL
-#TrainWifiBuild$BUILDINGID <- as.numeric(TrainWifiBuild$BUILDINGID )
-
-
-str(TrainWifiBuild)
-
-#little test on how many waps are reduced: (fro the 300s)
-# TestDF <- 
-#   #WeHaveBuilding
-#   TrainWifiAgg   %>%
-#   filter(BUILDINGID #PredictedB 
-#          %in% c("B2"))  
-
-# GoodWAPs <- TestDF %>% group_by(
-#   WAP) %>% 
-#   summarize(SignalPow = as.numeric(sum(SignalPow))) %>%
-#   filter(SignalPow > 0)
-# 
-# str(GoodWAPs) 
-
-
-BuildControl <- trainControl(method="repeatedcv"
-                             ,classProbs = TRUE
-                             #,savePredictions = TRUE
-                             , number=5, repeats=2
-                             )
-
-
-
-
-#### Enable parallel processing ####
-no_cores <- detectCores() - 2
-cl <- makeCluster(no_cores)
-registerDoParallel(cl)
-on.exit(stopCluster(cl))
-
-#WAPs<-grep("WAP", names(TrainWifiBuild), value=T)
-
-library(randomForest)
-# bestmtry_rf <- tuneRF(TrainWifiBuild[WAPs], TrainWifiBuild$BUILDINGID
-#                     , ntreeTry=100,stepFactor=2
-#                     ,improve=0.05,trace=TRUE
-#                     #, plot=TRUE
-#                     )
-
-
-set.seed(123)
-  # RfBuildFit <- 
-  # train(BUILDINGID ~ ., data=TrainWifiBuild[WAPs], method="rf" 
-  #       , tuneGrid = 17
-  #       #tuneLength = 5,
-  #      # metric = "ROC",
-  #      , trControl=BuildControl
-  #      )
-
-RfBuildFit <-
-#  system.time(
-randomForest(y=TrainWifiBuild$BUILDINGID,x=TrainWifiBuild[WAPs],importance=T
-             ,method="rf", ntree=100, mtry=17)
-#)
-
-
-#saveRDS(RfBuildFit, "./models/BuildingRF.rds") 
-
-library(xgboost)
-set.seed(123)
-XGBoostBuildFit <- train(BUILDINGID~.,
-                         data = TrainWifiBuild,
-                         method = "xgbTree",
-                         tunelength = 5,
-                         trControl = BuildControl#,tuneGrid=parametersGrid
-)
-
-#saveRDS(XGBoostBuildFit, "./models/BuildXGBoost.rds") 
-saveRDS(XGBoostBuildFit, "./models/BuildXGBoost3.rds") 
-XGBoostBuildFit <- readRDS("./models/BuildXGBoost3.rds")
-
-XGBoostBuildFit
-varImp(XGBoostBuildFit)
-TestWifi
-#varImp(XGBoostBuildFit)
-#Models <- list.files(path = "./models/", pattern = "rds")
-
-
-GenericTrClasses <- predict(XGBoostBuildFit, newdata = TrainWifiBuild)
-Matrix <-   confusionMatrix(GenericTrClasses, TrainWifiBuild$BUILDINGID)
-
-GenericTestClasses <- predict(XGBoostBuildFit, newdata = TestWifi)
-Matrix <-   confusionMatrix(GenericTestClasses, TestWifi$BUILDINGID)
-
-
-
-GenericTestClasses <- predict(RfBuildFit, newdata = TestWifi)
-Matrix <-   confusionMatrix(GenericTestClasses, TestWifi$BUILDINGID)
-
-
-
-test1 <- TrainWifiBuild
-test1$PredictedB <-  GenericTrClasses
-
-test2 <- TestWifi
-test2$PredictedB <-  GenericTestClasses
-
-#esquisse::esquisser()
-
-
-TestProbs <- predict(RfBuildFit, 
-                               newdata = TestWifi, type = "prob")
-
-TrainProbs <- predict(RfBuildFit, 
-                 newdata = TrainWifiBuild, type = "prob")
-
-# TestProbs
-# TrainProbs
-
-summary(
-  TrainWifiBuild
-)
-# 
-# Prueba <- TrainWifiBuild
-# Prueba$PredictedB <- GenericTrClasses
-#   
-# WeHaveBuilding <- cbind(test1$PredictedB,TrainWifiBuild)
-# colnames(WeHaveBuilding)[1]   <- "PredictedB"
-# 
-#         
-
-# TrainWifiFloor <- TrainWifiAllLocsUnm  %>% ungroup()
-# 
-# TrainWifiFloor$LONGITUDE <- NULL
-# TrainWifiFloor$LATITUDE <- NULL
-# 
-# TrainWifiFloor$SPACEID <- NULL
-# TrainWifiFloor$RELATIVEPOSITION <- NULL
 
 
 
@@ -255,13 +61,14 @@ summary(
 
   #lat and long trainning/validation.
   FloorsToIterate <- 
-    TrainFloorAlls  %>% select(FLOOR) %>% group_by(FLOOR) %>% ungroup() %>% unique()
+    TrainFloorAlls  %>% select(FLOOR) %>% #group_by(FLOOR) %>% ungroup() %>%
+   unique()
   
   #source("8 - Trainning Floor.R")
+  #as.vector(FloorsToIterate$FLOOR)
 
 
-
-  for (j in FloorsToIterate)
+  for (j in as.vector(FloorsToIterate$FLOOR))
   {
     #iteration <- "B0"
     #j <- 'F2'
@@ -286,26 +93,34 @@ summary(
     TrainLat$FLOOR <- NULL
     TrainLat$LONGITUDE <- NULL
     
-    Models <- c(#"vbmpRadial","lasso","svmRadial","svmPoly","relaxo","foba"
+    Models <- c(#
+                #"vbmpRadial"
                 #,
-                "kknn","gbm"
-    )
+                #"lasso"
+                #,
+      #"svmRadial"
+               # ,"svmPoly"
+              #  ,"relaxo"
+               # ,"foba"
+                #,
+                "kknn"
+                #,
+            #    "gbm"
+                #,
+          )
     ModelsLAT.list = as.list(vector(length = length(Models)))
     ModelsLONG.list = as.list(vector(length = length(Models)))
     
+    metric <- "Rsquared"
+    set.seed(123)
     for (z in 1:length(Models))
     {
       #z <- 1
      
-      set.seed(123)
-      
-      metric <- "Rsquared"
-      seed <- 123
-      set.seed(seed)
-      
-      KnnControl <- trainControl(method="repeatedcv", number=9, repeats=2) 
+      KnnControl <- trainControl(method="repeatedcv", number=9, repeats=2#, scale = TRUE
+                                 ) 
       #### Enable parallel processing ####
-      no_cores <- detectCores() - 1
+      no_cores <- detectCores() - 3
       cl <- makeCluster(no_cores)
       registerDoParallel(cl)
       on.exit(stopCluster(cl))
@@ -318,7 +133,8 @@ summary(
             paste ("./models/Lat_" , Models[z] , "_" , j , "_" , iteration , ".rds", sep = "")
     )
     
-    KnnControl <- trainControl(method="repeatedcv", number=9, repeats=2) 
+    KnnControl <- trainControl(method="repeatedcv", number=9, repeats=2#, scale = TRUE
+                               ) 
             ModelsLONG.list[[z]] <- 
               train(LONGITUDE ~ ., data=TrainLong, method=Models[z], 
                     metric=metric, trControl=KnnControl)
@@ -327,24 +143,33 @@ summary(
                     paste ("./models/Long_" , Models[z] , "_" , j , "_" , iteration , ".rds", sep = "")
     )
     
-    }#loop of models
-    
-    # # substituir per la llista de models...
-    # models <- resamples(list(#RF=rffit,
-    #                          Knn=Knnfit
-    #                          #,Svm=SvmFit
-    #                          ,gbm=gbmfit#, lm = lmdfd, svm = svmRdfd
-    # ))
-    # 
-    # bwplot(models, metric="Rsquared")
-    # bwplot(models, metric="RMSE")
-    # bwplot(models, metric="MAE")
+    }          #loop of models
+
+
     
   }   #loop of floor
   
 }   #loop of building
 
+
     
+
+# # substituir per la llista de models...
+# models <- resamples(list(#RF=rffit,
+#                          Knn=Knnfit
+#                          #,Svm=SvmFit
+#                          ,gbm=gbmfit#, lm = lmdfd, svm = svmRdfd
+# ))
+# 
+# bwplot(models, metric="Rsquared")
+# bwplot(models, metric="RMSE")
+# bwplot(models, metric="MAE")
+
+
+
+
+
+
 
 ## NN try
 # TrainNN <- TrainLong 
