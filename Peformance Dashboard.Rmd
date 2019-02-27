@@ -9,289 +9,99 @@ output:
 
 ```{r setup, include=FALSE}
 
+
 # rsconnect::setAccountInfo(name='piedpipper23',
 # 			  token='DFDEF409C35E8F1DDB11A0FB24F312BF',
 # 			  secret='<SECRET>')
 
+Models2 <-  c(#"svmLinear"
+                #,
+               "knn"
+               #,  
+           #   ,  "kknn"
+              #,"glmnet"
+             # ,"glm"
+            #  ,
+             , "rf"
+          )
 
-setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
 
-source("1 - Inicialization and Libraries.R")
 
+  
 # Test <- read.csv2(file = "./csv/Daily.csv"
 #           )
 
+
+source("1 - Inicialization and Libraries.R")
 
 source("2 - Reading CSV Validation - Wifi1.R")
 
   
 Wifi1$KeySample <-  1:nrow(Wifi1) 
-TempWifiMelted1 <- Wifi1  %>% melt( id.vars = c("KeySample")
+
+TempWifiMelted1 <- Wifi1  %>% melt( id.vars = c("KeySample","BUILDINGID","TIMESTAMP","FLOOR","PHONEID","USERID","RELATIVEPOSITION"
+                                                ,"SPACEID","LATITUDE","LONGITUDE")
 )  %>% 
   mutate( value = value + 105) %>% 
   mutate( value = case_when(value == 205 ~ 0,
                             TRUE ~ value) 
   )     
- 
+# 
+# TempWifiMelted1
+#  summary(TempWifiMelted1)
+#  summary(Wifi1  %>% melt( id.vars = c("KeySample","BUILDINGID","TIMESTAMP","PHONEID","USERID","RELATIVEPOSITION"
+#                                                 ,"SPACEID","LATITUDE","LONGITUDE")
+# )  )
 
-colnames(TempWifiMelted1)[2] <- "WAP"
-colnames(TempWifiMelted1)[3] <- "SignalPow"
+summary(Wifi1)
+
+
+colnames(TempWifiMelted1)[11] <- "WAP"
+colnames(TempWifiMelted1)[12] <- "SignalPow"
         
+# TempWifiMelted1 %>% filter (SignalPow > 70)
+ 
+ 
+#write down the useles waps
+  # BadWAPs <- TempWifiMelted1 %>% group_by(
+  #   WAP) %>% 
+  #   summarize(SignalPow = as.numeric(sum(SignalPow))) %>%
+  #   filter(SignalPow == 0)
+  # write.csv(BadWAPs,"../csv/BadWaps.csv")
+  
 ValidationSet <- TempWifiMelted1 %>% # unique()
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
 
-ValidationSet$FLOOR <- "F0"
- levels(ValidationSet$FLOOR) <- c("F0", "F1","F2","F3","F4")
-XGBoostBuildFitt <- readRDS("./models/BuildXGBoost3.rds")
+ValidationSet$FLOOR <- "F4"
+ ValidationSet$FLOOR <- factor(ValidationSet$FLOOR)
+levels(ValidationSet$FLOOR) <- c("F0", "F1","F2","F3","F4")
+ 
+ XGBoostBuildFitt <- readRDS("./models/BuildXGBoost.rds")
 
-ValidProbs <- predict(XGBoostBuildFitt, newdata = ValidationSet, type = "prob")
+ValidProbs <- predict(XGBoostBuildFitt, newdata = ValidationSet
+                      , type = "prob")
 
-Models2 <-  c("svmRadial"
-                ,"kknn"
-                ,"gbm"
-          )
+
 
 ValidationSet$BUILDINGID <-  predict(XGBoostBuildFitt, newdata = ValidationSet)
+
+#summary(ValidationSet$BUILDINGID)
+#  B0   B1   B2 
+ #3954 1049  176 
+
+
+ #test
+     #ValidationSet  %>% group_by(FLOOR,BUILDINGID) %>%  summarise(n = n()) %>% arrange(n) 
+
+
 #library(esquisse)
 #esquisse::esquisser()
 
 
 ```
 
-Long Lat Prediction
-=======================================================================
 
-
-Column {.sidebar data-width=150}
------------------------------------------------------------------------
-
-```{r}
-
-  
-#selectInput("Submet", label = "Submet:",
-#            choices = c("AC" ,"Rest","Laundry","Kitchen"), selected = "AC")
-
-selectInput("Building", label = "Building :",
-            choices = c("B0","B1","B2"), selected = "B0")
-
-selectInput("Floor", label = "Floor :",
-            choices = c("F0","F2","F3","F4"), selected = "F0")
-
-
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
-
-# sliderInput("bw_adjust", label = "Bandwidth adjustment:",
-#             min = 0.2, max = 2, value = 1, step = 0.2)
-```
-
-Column {data-width=450}
------------------------------------------------------------------------
-
-
-### Latitude Predictions (pending to do )
-
-```{r include=TRUE, results='asis'}
-
-
-
-  
-prueba <- ggplot(data = ValidProbs) +
-  aes(x = B0) +
-  geom_density(adjust = 1, fill = "#0c4c8a") +
-  theme_minimal()
-#prueba <- prueba + aes(y = B1)
-
-
-ggplotly(prueba)
-
-     #}
-```
-
-
-Column {data-width=450}
------------------------------------------------------------------------
-
-###  Longitude RSQUARED
-
-```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
-
- setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
-
-     
-renderPlot({
-    
-  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
-  #   select (Result) )
-  
-  
-   ModelsLAT2.list = as.list(vector(length = length(Models2)))
-   
-   for (pepe in 1:length(Models2))
-   {
-    # pepe <- 1
-  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
- ModelsLAT2.list[[pepe]] <-  readRDS( 
-  paste ("./models/Long_" , Models2[pepe] , "_" ,input$Floor
-         , "_" , input$Building
-         , ".rds"
-         , sep = "")
-    )
-
-   }
-   
-  models <- resamples(ModelsLAT2.list
-)
-
- bwplot(models, metric="Rsquared")
-
-
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
-  
-})
-
-
-```
-
-
-
-###  Longitude RMSE
-
-```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
-
- setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
-
-     
-renderPlot({
-    
-  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
-  #   select (Result) )
-  
-  
-   ModelsLAT2.list = as.list(vector(length = length(Models2)))
-   
-   for (pepe in 1:length(Models2))
-   {
-    # pepe <- 1
-  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
- ModelsLAT2.list[[pepe]] <-  readRDS( 
-  paste ("./models/Long_" , Models2[pepe] , "_" , input$Floor
-         , "_" , input$Building
-         , ".rds"
-         , sep = "")
-    )
-
-   }
-   
-  models <- resamples(ModelsLAT2.list
-)
-
-  bwplot(models, metric="RMSE")
-
-
-
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
-  
-})
-
-
-```
-
-
-###  Longitude MAE
-
-```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
-
- setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
-
-     
-renderPlot({
-    
-  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
-  #   select (Result) )
-  
-  
-   ModelsLAT2.list = as.list(vector(length = length(Models2)))
-   
-   for (pepe in 1:length(Models2))
-   {
-    # pepe <- 1
-  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
- ModelsLAT2.list[[pepe]] <-  readRDS( 
-  paste ("./models/Long_" , Models2[pepe] , "_" , input$Floor
-         , "_" , input$Building
-         , ".rds"
-         , sep = "")
-    )
-
-   }
-   
-  models <- resamples(ModelsLAT2.list
-)
-
-
- bwplot(models, metric="MAE")
-
-
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
-  
-})
-
-
-```
-
-
-
-
-Building and Floor Prediction
+B&F Prediction (probabilites on New Data)
 =======================================================================
 
 
@@ -324,16 +134,24 @@ Column {data-width=450}
 ```{r include=TRUE, results='asis'}
 
 
-
+renderPlot({
   
-prueba <- ggplot(data = ValidProbs) +
-  aes(x = B0) +
+  TempDFVisu <- ValidProbs
+TempDFVisu$ToVisualize <- as.vector(ValidProbs[,input$Building1
+                                               ])
+
+
+
+prueba <- ggplot(data = TempDFVisu) +
+  aes(x = ToVisualize) +
+  xlab(input$Building1)  +
   geom_density(adjust = 1, fill = "#0c4c8a") +
   theme_minimal()
 #prueba <- prueba + aes(y = B1)
 
 
-ggplotly(prueba)
+prueba
+})
 
      #}
 ```
@@ -635,6 +453,432 @@ prueba2
 
 
 ```
+
+
+
+
+Long&Lat Prediction (on 'train' data)
+=======================================================================
+
+
+Column {.sidebar data-width=150}
+-----------------------------------------------------------------------
+
+```{r}
+
+  
+#selectInput("Submet", label = "Submet:",
+#            choices = c("AC" ,"Rest","Laundry","Kitchen"), selected = "AC")
+
+selectInput("Building", label = "Building :",
+            choices = c("B0","B1","B2"), selected = "B0")
+
+selectInput("Floor", label = "Floor :",
+            choices = c("F0","F1","F2","F3","F4"), selected = "F0")
+
+selectInput("approach1", label = "Approach :",
+            choices = c("Train&Test","Minimal","OnlyTrain"), selected = "Train&Test")
+
+
+# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
+#               Result=c(1,2,3,4)))
+
+# sliderInput("bw_adjust", label = "Bandwidth adjustment:",
+#             min = 0.2, max = 2, value = 1, step = 0.2)
+```
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+
+### Latitude Predictions  RSQUARED
+
+```{r include=TRUE, results='asis'}
+# prueba <- ggplot(data = Test) +
+#   aes(x = year, y = SubMet_Energy) +
+#   geom_point(color = "#0c4c8a") +
+#   theme_minimal()
+# 
+# ggplotly(prueba)
+# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
+#               Result=c(1,2,3,4)))
+
+ setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+
+     
+renderPlot({
+    
+  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
+  #   select (Result) )
+  
+  
+   ModelsLAT2.list = as.list(vector(length = length(Models2)))
+   
+   for (pepe in 1:length(Models2))
+   {
+    # pepe <- 1
+  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+     if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
+ ModelsLAT2.list[[pepe]] <-  readRDS( 
+  paste ("./models/" , approach2, "Lat_" , Models2[pepe] , "_" ,input$Floor
+         , "_" , input$Building
+         , ".rds"
+         , sep = "")
+    )
+
+   }
+   
+  models <- resamples( ModelsLAT2.list, modelNames = Models2
+                            #)
+)
+
+ bwplot(models, metric="Rsquared")
+
+
+  #ACplot <- autoplot(ValidFloorProbs)
+  
+  
+  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
+  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
+  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
+  # ACplot <- ACplot + ylab("Energy Consumption Wh")
+
+  #ACplot
+  
+})
+
+
+```
+
+
+
+###  Latitude RMSE
+
+```{r include=TRUE, results='asis'}
+# prueba <- ggplot(data = Test) +
+#   aes(x = year, y = SubMet_Energy) +
+#   geom_point(color = "#0c4c8a") +
+#   theme_minimal()
+# 
+# ggplotly(prueba)
+# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
+#               Result=c(1,2,3,4)))
+
+ setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+
+     
+renderPlot({
+    
+  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
+  #   select (Result) )
+  
+  
+   ModelsLAT2.list = as.list(vector(length = length(Models2)))
+   
+   for (pepe in 1:length(Models2))
+   {
+    # pepe <- 1
+  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+        if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
+ ModelsLAT2.list[[pepe]] <-  readRDS( 
+  paste ("./models/" , approach2, "Lat_" , Models2[pepe] , "_" , input$Floor
+         , "_" , input$Building
+         , ".rds"
+         , sep = "")
+    )
+
+   }
+   
+models <- resamples( ModelsLAT2.list, modelNames = Models2
+                            #)
+)
+
+  bwplot(models, metric="RMSE")
+
+
+
+  #ACplot <- autoplot(ValidFloorProbs)
+  
+  
+  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
+  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
+  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
+  # ACplot <- ACplot + ylab("Energy Consumption Wh")
+
+  #ACplot
+  
+})
+
+
+```
+
+
+###  Latitude MAE
+
+```{r include=TRUE, results='asis'}
+# prueba <- ggplot(data = Test) +
+#   aes(x = year, y = SubMet_Energy) +
+#   geom_point(color = "#0c4c8a") +
+#   theme_minimal()
+# 
+# ggplotly(prueba)
+# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
+#               Result=c(1,2,3,4)))
+
+ setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+
+     
+renderPlot({
+    
+  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
+  #   select (Result) )
+  
+  
+   ModelsLAT2.list = as.list(vector(length = length(Models2)))
+   
+   for (pepe in 1:length(Models2))
+   {
+    # pepe <- 1
+  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+    if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
+ ModelsLAT2.list[[pepe]] <-  readRDS( 
+  paste ("./models/" , approach2, "Lat_" , Models2[pepe] , "_" , input$Floor
+         , "_" , input$Building
+         , ".rds"
+         , sep = "")
+    )
+
+   }
+   
+models <- resamples( ModelsLAT2.list, modelNames = Models2
+                            #)
+)
+
+
+ bwplot(models, metric="MAE")
+
+
+  #ACplot <- autoplot(ValidFloorProbs)
+  
+  
+  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
+  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
+  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
+  # ACplot <- ACplot + ylab("Energy Consumption Wh")
+
+  #ACplot
+  
+})
+
+
+```
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+###  Longitude RSQUARED
+
+```{r include=TRUE, results='asis'}
+# prueba <- ggplot(data = Test) +
+#   aes(x = year, y = SubMet_Energy) +
+#   geom_point(color = "#0c4c8a") +
+#   theme_minimal()
+# 
+# ggplotly(prueba)
+# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
+#               Result=c(1,2,3,4)))
+
+ setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+
+     
+renderPlot({
+    
+  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
+  #   select (Result) )
+  
+  
+   ModelsLAT2.list = as.list(vector(length = length(Models2)))
+   
+   for (pepe in 1:length(Models2))
+   {
+    # pepe <- 1
+  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
+ ModelsLAT2.list[[pepe]] <-  readRDS( 
+  paste ("./models/" , approach2, "Long_" , Models2[pepe] , "_" ,input$Floor
+         , "_" , input$Building
+         , ".rds"
+         , sep = "")
+    )
+
+   }
+   
+  models <- resamples( ModelsLAT2.list, modelNames = Models2
+                            #)
+)
+
+ bwplot(models, metric="Rsquared")
+
+
+  #ACplot <- autoplot(ValidFloorProbs)
+  
+  
+  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
+  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
+  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
+  # ACplot <- ACplot + ylab("Energy Consumption Wh")
+
+  #ACplot
+  
+})
+
+
+```
+
+
+
+###  Longitude RMSE
+
+```{r include=TRUE, results='asis'}
+# prueba <- ggplot(data = Test) +
+#   aes(x = year, y = SubMet_Energy) +
+#   geom_point(color = "#0c4c8a") +
+#   theme_minimal()
+# 
+# ggplotly(prueba)
+# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
+#               Result=c(1,2,3,4)))
+
+ setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+
+     
+renderPlot({
+    
+  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
+  #   select (Result) )
+  
+  
+   ModelsLAT2.list = as.list(vector(length = length(Models2)))
+   
+   for (pepe in 1:length(Models2))
+   {
+    # pepe <- 1
+  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+     if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
+ ModelsLAT2.list[[pepe]] <-  readRDS( 
+  paste ("./models/" , approach2, "Long_" , Models2[pepe] , "_" , input$Floor
+         , "_" , input$Building
+         , ".rds"
+         , sep = "")
+    )
+
+
+    # ### defining train and test.
+    #   #retreiving performance metrics, (based on all data, this may be changed)
+    #   PredictedTest <- predict(ModelsLAT.list[[z]], newdata = TestLat)
+    #   TempDF <-   postResample(PredictedTest , TestLat$LATITUDE)
+    #   TempDF$Model <- Models[z]
+    #   TempDF$Approach <- approach
+    #   
+    #   ****
+    #   if (y == 1) {
+    #     PerfMetrics <- TempDF
+    #   } else {
+    #     PerfMetrics <- rbind(PerfMetrics,TempDF)
+    #   }
+    #   
+    #   ResultsPerf$Temp <- PredictedValues.list[[y]]
+    #   names(ResultsPerf)[ncol(ResultsPerf)]<- Models[y]
+      
+      
+      
+   }
+   
+models <- resamples( ModelsLAT2.list, modelNames = Models2
+                            #)
+)
+
+  bwplot(models, metric="RMSE")
+
+
+
+  #ACplot <- autoplot(ValidFloorProbs)
+  
+  
+  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
+  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
+  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
+  # ACplot <- ACplot + ylab("Energy Consumption Wh")
+
+  #ACplot
+  
+})
+
+
+```
+
+
+###  Longitude MAE
+
+```{r include=TRUE, results='asis'}
+# prueba <- ggplot(data = Test) +
+#   aes(x = year, y = SubMet_Energy) +
+#   geom_point(color = "#0c4c8a") +
+#   theme_minimal()
+# 
+# ggplotly(prueba)
+# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
+#               Result=c(1,2,3,4)))
+
+ setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+
+     
+renderPlot({
+    
+  # padding <- as.numeric(ValidationSet %>% filter(BUILDINGID == input$Building) %>%
+  #   select (Result) )
+  
+  
+   ModelsLAT2.list = as.list(vector(length = length(Models2)))
+   
+   for (pepe in 1:length(Models2))
+   {
+    # pepe <- 1
+  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+          if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
+ ModelsLAT2.list[[pepe]] <-  readRDS( 
+  paste ("./models/" , approach2, "Long_" , Models2[pepe] , "_" , input$Floor
+         , "_" , input$Building
+         , ".rds"
+         , sep = "")
+    )
+
+   }
+   
+models <- resamples( ModelsLAT2.list, modelNames = Models2
+                            #)
+)
+
+
+ bwplot(models, metric="MAE")
+
+
+  #ACplot <- autoplot(ValidFloorProbs)
+  
+  
+  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
+  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
+  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
+  # ACplot <- ACplot + ylab("Energy Consumption Wh")
+
+  #ACplot
+  
+})
+
+
+```
+
+
 
 
 

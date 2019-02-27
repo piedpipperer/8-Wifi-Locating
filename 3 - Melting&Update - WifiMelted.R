@@ -41,6 +41,9 @@ colnames(TempWifiMelted)[13] <- "SignalPow"
 #LETS define a sequence to use as primary key:
 TempWifiMelted$KEY <- 1:nrow(TempWifiMelted) 
 #10613644
+
+
+
 WifiMelted <- RemoveBotheringWAPs(TempWifiMelted) # %>% select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID, WAP, SignalPow, KeySample, KEY)
 
 

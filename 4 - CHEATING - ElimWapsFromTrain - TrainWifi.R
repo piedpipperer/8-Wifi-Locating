@@ -2,8 +2,10 @@
 
 TakeNumberUniqueLocations <- function(WifiUnMelt, N) {
   
+ # if(N == NULL) { N=1}
   TrainWifiAllLocs <- WifiUnMelt %>% dplyr::group_by(LONGITUDE,LATITUDE,FLOOR
-                                                     ,BUILDINGID#, WAP, SignalPow
+                                                     ,BUILDINGID
+                                                     ,#, WAP, SignalPow
                                                      #,
                                                      #KeySample
   )  %>% sample_n(1)
@@ -30,14 +32,22 @@ TakeNumberUniqueLocations <- function(WifiUnMelt, N) {
 
 # getting a training set with the relevant waps.
 
+BadWapss <- WifiMelted %>% filter(FALSE)   %>% dplyr::select(WAP) 
+if (approach == "Minimal") {
+  BadWapss <- read.csv("../csv/BadWaps.csv") #WAPS NOT used by the validation set.
+  #GoodWaps <- 
+}
 
 
+WifiMelt2 <- WifiMelted  %>%
+  dplyr::select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID, WAP, SignalPow, KeySample, TEST) %>% 
+  subset(!WAP %in% BadWapss$WAP) 
 
-WifiUnMelt <- WifiMelted  %>%
-  select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID, WAP, SignalPow, KeySample) %>% 
+
+WifiUnMelt <- WifiMelt2   %>% 
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
 
-str(WifiUnMelt)
+#str(WifiUnMelt)
 
 #### eliminating useless WAPs ####
 #defining the waps with signal > 0
@@ -66,10 +76,6 @@ str(WifiUnMelt)
 TrainWifiAllLocs <- TakeNumberUniqueLocations(WifiUnMelt,20)
 
 # hem de canviar el loop!!
-
-
-TrainWifiAllLocs
-#17k
 
 
 
