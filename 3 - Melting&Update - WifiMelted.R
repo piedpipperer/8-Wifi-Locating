@@ -14,6 +14,15 @@ RemoveBotheringWAPs <- function(TrainDF) {
 
 #str(Wifi0) #21048
 
+
+
+# Wifi0 %>% 
+#   group_by (FLOOR, BUILDINGID) %>%  summarise(n = n()) 
+
+Wifi0 %>% 
+  group_by (BUILDINGID) %>%  summarise(n = n()) 
+
+
 # str(
 # Wifi0 %>% unique() #20411
 # )

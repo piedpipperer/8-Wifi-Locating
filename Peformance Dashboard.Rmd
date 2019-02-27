@@ -53,7 +53,7 @@ TempWifiMelted1 <- Wifi1  %>% melt( id.vars = c("KeySample","BUILDINGID","TIMEST
 #                                                 ,"SPACEID","LATITUDE","LONGITUDE")
 # )  )
 
-summary(Wifi1)
+#summary(Wifi1)
 
 
 colnames(TempWifiMelted1)[11] <- "WAP"
@@ -155,10 +155,6 @@ prueba
 
      #}
 ```
-
-
-Column {data-width=450}
------------------------------------------------------------------------
 
 ### Floor Prediction F0
 
@@ -276,6 +272,10 @@ prueba2
 
 
 ```
+
+
+Column {data-width=450}
+-----------------------------------------------------------------------
 
 
 ### Floor Prediction F2

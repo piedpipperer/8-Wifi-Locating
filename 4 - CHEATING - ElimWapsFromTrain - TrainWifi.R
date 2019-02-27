@@ -75,6 +75,10 @@ WifiUnMelt <- WifiMelt2   %>%
 
 TrainWifiAllLocs <- TakeNumberUniqueLocations(WifiUnMelt,20)
 
+
+ # TrainWifiAllLocs %>%   group_by (FLOOR, BUILDINGID) %>%  summarise(n = n()) 
+
+
 # hem de canviar el loop!!
 
 

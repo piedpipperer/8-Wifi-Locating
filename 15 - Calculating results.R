@@ -3,7 +3,13 @@
 
 #filling up validation set!!
 
-ModelEmployed <- "kknn"
+ModelEmployed <- "rf"
+approach <- "OnlyTrain"
+
+# summary(
+# ValidationSet$BUILDING)
+
+ValidationSet2 <- ValidationSet
 
 for (iteration2 in c("B0", "B1","B2"))
 {
@@ -15,18 +21,18 @@ for (iteration2 in c("B0", "B1","B2"))
   IterFloorFit <-  readRDS(
     paste ("./models/FloorXGBoost_" , iteration2 , ".rds", sep = "")
   )
-  ValidationSet[ValidationSet$BUILDINGID==iteration2,]$FLOOR  <-  predict(IterFloorFit, newdata = ValidationSet %>%    filter(BUILDINGID == iteration2))
+  ValidationSet2[ValidationSet2$BUILDINGID==iteration2,]$FLOOR  <-  predict(IterFloorFit, newdata = ValidationSet2 %>%    filter(BUILDINGID == iteration2))
   
-  #summary(ValidationSet[ValidationSet$BUILDINGID==iteration2,]$FLOOR)
+  #summary(ValidationSet2[ValidationSet2$BUILDINGID==iteration2,]$FLOOR)
   
   
-  # summary(ValidationSet$LONGITUDE)
+  # summary(ValidationSet2$LONGITUDE)
   # always 105.
   
 
 #lat and long trainning/validation.
 FloorsToIterate <-
-  ValidationSet  %>% filter(BUILDINGID == iteration2) %>% dplyr::select(FLOOR) %>%
+  ValidationSet2  %>% filter(BUILDINGID == iteration2) %>% dplyr::select(FLOOR) %>%
   unique()
 
 for (j2 in as.vector(FloorsToIterate$FLOOR))
@@ -37,73 +43,70 @@ for (j2 in as.vector(FloorsToIterate$FLOOR))
   LongModelFit <- readRDS(
     paste ("./models/" , approach, "Long_" , ModelEmployed , "_" , j2 , "_" , iteration2 , ".rds", sep = "")
   )
-  ValidationSet[which(ValidationSet$BUILDINGID==iteration2 & ValidationSet$FLOOR==j2),]$LONGITUDE  <-  predict(LongModelFit, newdata =      ValidationSet %>%    filter(BUILDINGID == iteration2) %>%    filter(FLOOR == j2)) #3900
+  ValidationSet2[which(ValidationSet2$BUILDINGID==iteration2 & ValidationSet2$FLOOR==j2),]$LONGITUDE  <-  predict(LongModelFit, newdata =      ValidationSet2 %>%    filter(BUILDINGID == iteration2) %>%    filter(FLOOR == j2)) #3900
   
   LatModelFit <- readRDS(
     paste ("./models/" , approach, "Lat_" , ModelEmployed , "_" , j2 , "_" , iteration2 , ".rds", sep = "")
   )
-  ValidationSet[which(ValidationSet$BUILDINGID==iteration2 & ValidationSet$FLOOR==j2),]$LATITUDE  <-  predict(LatModelFit, newdata =      ValidationSet %>%    filter(BUILDINGID == iteration2) %>%    filter(FLOOR == j2)) #3900
+  ValidationSet2[which(ValidationSet2$BUILDINGID==iteration2 & ValidationSet2$FLOOR==j2),]$LATITUDE  <-  predict(LatModelFit, newdata =      ValidationSet2 %>%    filter(BUILDINGID == iteration2) %>%    filter(FLOOR == j2)) #3900
   
 } #floors
 } #buildings
 
 
+
+
+#ValidationSet2 %>% group_by(BUILDINGID,FLOOR) %>%  summarise(n = n()) 
+
 class(Wifi1)
-str(ValidationSet)
+str(ValidationSet2)
 #falta el post processing!!
-#ValidationSet$KeySample <-  1:nrow(ValidationSet)
+#ValidationSet2$KeySample <-  1:nrow(ValidationSet2)
 
-summary(ValidationSet$LONGITUDE)
-summary(ValidationSet$LATITUDE)
+summary(ValidationSet2$LONGITUDE)
+summary(ValidationSet2$LATITUDE)
 
-
-summary(as.vector(Wifi1 %>% inner_join(ValidationSet %>% dplyr::select(BUILDINGID,KeySample)
-                                       , by = "KeySample") %>% 
-                    dplyr::select( BUILDINGID = BUILDINGID.y)# %>% rename(BUILDINGID = BUILDINGID.BUILDINGID)
-))
+summary(ValidationSet2$FLOOR)
+summary(ValidationSet2$BUILDING)
 
 
-# 
-# SetToCSV <- Wifi0
-# cambiar estrategia , guardar validation set y arreange por keysample
-# 
-# #tail(SetToCSV)
-# 
-# #SetToCSV$BUILDINGID <- SetToCSV$BUILDINGID.BUILDINGID
-# #SetToCSV$BUILDINGID.BUILDINGID <- NULL
-# 
-# 
-# SetToCSV$FLOOR <- as.vector(Wifi1 %>% inner_join(ValidationSet %>% dplyr::select(FLOOR,KeySample)
-#                                                  , by = "KeySample") %>% 
-#                               dplyr::select(FLOOR = FLOOR.y)) 
-# 
-# SetToCSV$LATITUDE <- as.vector(Wifi1 %>% inner_join(ValidationSet %>% dplyr::select(LATITUDE,KeySample)
-#                                                     , by = "KeySample") %>% 
-#                                  dplyr::select(LATITUDE = LATITUDE.y) )
-# 
-# SetToCSV$LONGITUDE <- as.vector(Wifi1 %>% inner_join(ValidationSet %>% dplyr::select(LONGITUDE,KeySample)
-#                                                      , by = "KeySample") %>% 
-#                                   dplyr::select(LONGITUDE = LONGITUDE.y )
-# )
 
-SetToCSV <- ValidationSet %>% arrange(KeySample) %>% select (BUILDINGID,FLOOR,LATITUDE,LONGITUDE)
+
+
+#ValidationSet2 %>% dplyr::select(as.numeric(substr(FLOOR, 1,  4)))
+
+
+levels(ValidationSet2$FLOOR) <- c(0, 1,2,3,4)
+ValidationSet2$FLOOR <- as.numeric(ValidationSet2$FLOOR)-1
+
+#ValidationSet2$GoodFloor <- as.numeric(ValidationSet2$FLOOR)-1
+#ValidationSet2 %>% group_by(BUILDINGID,FLOOR,GoodFloor) %>%  summarise(n = n()) 
+
+ValidationSet2 %>% group_by(BUILDINGID,FLOOR) %>%  summarise(n = n())
+# ValidationSet2 %>% arrange(KeySample) %>% dplyr::select(LATITUDE,LONGITUDE,FLOOR,GoodFloor) %>% 
+#   filter(FLOOR == "F0")
+
+
+SetToCSV <- ValidationSet2 %>% arrange(KeySample) %>% dplyr::select(LATITUDE,LONGITUDE,FLOOR) 
+#%>%   mutate(FLOOR = as.numeric(FLOOR))
 str(SetToCSV)
 SetToCSV$KeySample <- NULL
 setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+summary(SetToCSV)
 write.csv(SetToCSV,
           paste("../csv/"  , approach, "_" ,ModelEmployed, "_ValidationSetJordi.csv",  sep = ""
-                )
+               ) , row.names = FALSE 
 )
 
 
-
-Wifi4Visual <- SetToCSV %>% melt( id.vars = c("LONGITUDE","LATITUDE","FLOOR","BUILDINGID","SPACEID"
-                                              ,"RELATIVEPOSITION","USERID","PHONEID",
-                                              "TIMESTAMP","KeySample") )  %>% filter(value != 0) %>% unique()
-
-colnames(Wifi4Visual)[11] <- "WAP"
-colnames(Wifi4Visual)[12] <- "SignalPow"
-Wifi4Visual$TEST <- TRUE
-summary(Wifi4Visual$LATITUDE)
-summary(Wifi4Visual$LONGITUDE)
-source("99 - WritingSpatialCSV - AllWifiAgg.R")
+# 
+# Wifi4Visual <- SetToCSV %>% melt( id.vars = c("LONGITUDE","LATITUDE","FLOOR","BUILDINGID","SPACEID"
+#                                               ,"RELATIVEPOSITION","USERID","PHONEID",
+#                                               "TIMESTAMP","KeySample") )  %>% filter(value != 0) %>% unique()
+# 
+# colnames(Wifi4Visual)[11] <- "WAP"
+# colnames(Wifi4Visual)[12] <- "SignalPow"
+# Wifi4Visual$TEST <- TRUE
+# summary(Wifi4Visual$LATITUDE)
+# summary(Wifi4Visual$LONGITUDE)
+# source("99 - WritingSpatialCSV - AllWifiAgg.R")

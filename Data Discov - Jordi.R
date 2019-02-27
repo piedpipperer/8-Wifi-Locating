@@ -48,8 +48,8 @@ source("3 - Melting&Update - WifiMelted.R")
 #   
 
 
-approach <- "Minimal"
-#approach <- ""   #1st approach.
+#approach <- "Minimal"
+approach <- ""   #1st approach.
 #approach <- "OnlyTrain"
 
 source("4 - CHEATING - ElimWapsFromTrain - TrainWifi.R")
@@ -74,13 +74,12 @@ if (approach == "OnlyTrain")
 
 
 
-
 for (iteration in c(
-  # "B0"
+   "B0"
   #                   ,
   #                   "B1"
   #                   ,
-  "B2"
+  #"B2"
 )) 
 { 
   #iteration <- "B2"
@@ -104,8 +103,8 @@ for (iteration in c(
 
   for (j in # as.vector(FloorsToIterate$FLOOR) 
        c(
-       #"F0"#,
-       "F2"
+       "F0"#,
+      # "F2"
          #,
       #   "F4"
        )
@@ -159,8 +158,8 @@ for (iteration in c(
       #,
       #  "gbm"
       #,
-      "rf"  #(mu lento)
-      #,  "knn"
+    #  "rf"  #(mu lento)
+        "knn"
       # "DENFIS"  (mu lento)
       #"randomGLM" 
       # "xgbTree" , perque no tira?
@@ -188,26 +187,26 @@ for (iteration in c(
       registerDoParallel(cl)
       on.exit(stopCluster(cl))
       # 
-      # ModelsLAT.list[[z]] <- 
-      #   caret::train(LATITUDE ~ ., data=TrainLat, method=Models[z], 
-      #                metric=metric, trControl=KnnControl)
-      # 
-      # saveRDS(ModelsLAT.list[[z]],
-      #         paste ("./models/" , approach, "Lat_" , Models[z] , "_" , j , "_" , iteration , ".rds", sep = "")
-      # )
-      # 
-      # # ### defining train and test.
-      # #
-      #  PredictedTest <- predict(ModelsLAT.list[[z]], newdata = TestLat)
-      #  TempDF <-   postResample(PredictedTest , TestLat$LATITUDE)
-      #  TempDF$Model <- Models[z]
-      #  TempDF$Floor <- j
-      #  TempDF$Building <- iteration
-      #  TempDF$LongLat <- "Lat"
-      #  TempDF$approach <- approach
-      #  write.table(TempDF, file="PerformanceResults.csv", append=T, row.names=F, col.names=F,  sep=";")
-      # #
+      ModelsLAT.list[[z]] <-
+        caret::train(LATITUDE ~ ., data=TrainLat, method=Models[z],
+                     metric=metric, trControl=KnnControl)
+
+      saveRDS(ModelsLAT.list[[z]],
+              paste ("./models/" , approach, "Lat_" , Models[z] , "_" , j , "_" , iteration , ".rds", sep = "")
+      )
+
+      # ### defining train and test.
       #
+       PredictedTest <- predict(ModelsLAT.list[[z]], newdata = TestLat)
+       TempDF <-   postResample(PredictedTest , TestLat$LATITUDE)
+       TempDF$Model <- Models[z]
+       TempDF$Floor <- j
+       TempDF$Building <- iteration
+       TempDF$LongLat <- "Lat"
+       TempDF$approach <- approach
+       write.table(TempDF, file="PerformanceResults.csv", append=T, row.names=F, col.names=F,  sep=";")
+      #
+
       KnnControl <- trainControl(method="repeatedcv", number=9, repeats=2#, scale = TRUE
       )
       ModelsLONG.list[[z]] <-
@@ -232,7 +231,6 @@ for (iteration in c(
   }   #loop of floor
   
 }   #loop of building
-
 
 
 
