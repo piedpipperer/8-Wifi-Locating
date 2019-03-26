@@ -2,15 +2,15 @@ summary(is.na(TrainWifi))
 
 
 library(tidyr)
-# TrainWifi3 <- TrainWifiAllLocs %>% dplyr::select(LONGITUDE,LATITUDE,
-#                                        FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
-#                                         , USERID
-#                                         , PHONEID
-#                                         ,TIMESTAMP
-#                                         ,
-#                                         WAP
-#                                         ,SignalPow) %>% 
-#   tidyr::spread(WAP, SignalPow, convert = FALSE) 
+TrainWifi3 <- TrainWifiAllLocs %>% dplyr::select(LONGITUDE,LATITUDE,
+                                       FLOOR,BUILDINGID,SPACEID,RELATIVEPOSITION
+                                        , USERID
+                                        , PHONEID
+                                        ,TIMESTAMP
+                                        ,
+                                        WAP
+                                        ,SignalPow) %>%
+  tidyr::spread(WAP, SignalPow, convert = FALSE)
 
 #my trainning set:
 #TrainWifiAllLocsUnm
@@ -26,7 +26,7 @@ str(TrainWifi3)
 
 
 #### lets try to predict Building, and make it very accurate ####
-TrainWifiBuild <- TrainWifiAllLocsUnm  %>% ungroup()
+TrainWifiBuild <- TrainWifi3  %>% ungroup()
 #TrainWifiBuild <- cbind(TrainWifi3$WAP,TrainWifi3$SignalPow)
 
 #TrainWifiBuild$BUILDING2 <- as.factor(TrainWifiBuild$BUILDING2)

@@ -14,3 +14,30 @@ retrieve_last_file <- function(directory, key_word = "validationData") {
   
 }
 
+
+# 1st preprocessing function
+
+preprocess <- function(d1){
+  
+  TestWifi0 <- d1
+  
+  
+  
+  TestWifi0$LONGITUDE <- as.numeric(TestWifi0$LONGITUDE)
+  TestWifi0$LATITUDE <- as.numeric(TestWifi0$LATITUDE)
+  TestWifi0$FLOOR <- as.factor(TestWifi0$FLOOR)
+  
+  TestWifi0$BUILDINGID <- as.factor(TestWifi0$BUILDINGID)
+  
+  levels(TestWifi0$BUILDINGID) <- c("B0", "B1","B2")
+  levels(TestWifi0$FLOOR) <- c("F0", "F1","F2","F3","F4")
+  
+  
+  TestWifi0$SPACEID <- as.factor(TestWifi0$SPACEID)
+  TestWifi0$RELATIVEPOSITION <- as.factor(TestWifi0$RELATIVEPOSITION)
+  
+  #left some part!
+
+  return(TestWifi0)
+  
+}

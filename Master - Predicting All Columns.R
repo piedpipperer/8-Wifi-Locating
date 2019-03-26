@@ -1,15 +1,51 @@
 
+
+#### Enable parallel processing ####
+no_cores <- detectCores() - 1
+cl <- makeCluster(no_cores)
+registerDoParallel(cl)
+on.exit(stopCluster(cl))
+
+#folder of the github root. (my project is just one folder away)
+GitDirect <- "./8-Wifi-locating/"
+
+
+ModelEmployed <- "rf"
+approach <- "Minimal"
+
+
+source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
+libraries_function()
+
+
+#first read and binding of data.
+source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
+
+Wifi1 <- retrieve_last_file(paste(getwd(),"/csv/",sep=""),"testData")  
+
+#Wifi1$KeySample <-  1:nrow(Wifi1) 
+Wifi1$TEST <- TRUE
+source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))
+
+#melting+preprocs+removing useless waps.
+TempWifiMelted1 <- WifiMelting(preprocess(
+  Wifi1))
+
+
+summary(TempWifiMelted1)
 #needs the Rmd to be run, using those datasets
 
 #filling up validation set!!
 
-ModelEmployed <- "rf"
-approach <- "OnlyTrain"
 
 # summary(
 # ValidationSet$BUILDING)
 
-ValidationSet2 <- ValidationSet
+ValidationSet2 <- TempWifiMelted1 %>% # unique()
+  tidyr::spread(WAP, SignalPow, convert = FALSE) 
+
+
+
 
 for (iteration2 in c("B0", "B1","B2"))
 {
@@ -17,7 +53,7 @@ for (iteration2 in c("B0", "B1","B2"))
   
   #we have to predict the floor per building now!
   
-  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+  setwd("./8-Wifi-Locating/")
   IterFloorFit <-  readRDS(
     paste ("./models/FloorXGBoost_" , iteration2 , ".rds", sep = "")
   )

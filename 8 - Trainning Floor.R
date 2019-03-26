@@ -1,3 +1,8 @@
+
+
+
+
+
 IterateDF2 <- TakeNumberUniqueLocations(TrainFloorAlls,18)
 TestIterate <- TrainFloorAlls %>%
   subset(!KeySample %in% IterateDF2$KeySample)
@@ -10,7 +15,7 @@ IterateDF3$KeySample <- NULL
 IterateDF3$BUILDINGID <- NULL
 #IterateDF3 %>% group_by(FLOOR) %>%    summarise(n = n()) %>% arrange(n)
 
-trainning floor, to put in file.
+
 FloorControl <- trainControl(method="repeatedcv"
                              ,classProbs = TRUE
                              #,savePredictions = TRUE

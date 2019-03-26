@@ -33,7 +33,9 @@ WifiMelting <- function(Wifi0) {
   
   
  return(
-   RemoveBotheringWAPs(TempWifiMelted) 
+  # RemoveBotheringWAPs(
+     TempWifiMelted
+  #   ) 
  )
   # %>% select(LONGITUDE,LATITUDE,FLOOR,BUILDINGID, WAP, SignalPow, KeySample, KEY)
   
