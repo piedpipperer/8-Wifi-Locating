@@ -21,11 +21,3 @@ libraries_function <- function(){
 
 
 
-
-#library(proj4)
-
-#### Enable parallel processing ####
-no_cores <- detectCores() - 1
-cl <- makeCluster(no_cores)
-registerDoParallel(cl)
-on.exit(stopCluster(cl))
