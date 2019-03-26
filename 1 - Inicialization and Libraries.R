@@ -4,21 +4,23 @@
 #strsplit(version[['version.string']], ' ')[[1]][3]
 
 
-#install.packages("Rserve")
-library(esquisse)
-
-
-
 #### Load Libraries ####
-library(pacman)
-pacman::p_load(readr, caret, plotly, ggplot2, 
-               labeling, promises, ggridges, 
-               doParallel,  e1071, mlbench,# inum,
-               corrplot#, ggpubr
-               , rpart, rpart.plot, gbm
-               , boot, dplyr,
-               reshape, Rserve#, tidyvers
-               , padr)
+libraries_function <- function(){
+  if(require("pacman")=="FALSE"){
+    install.packages('pacman')
+    library('pacman')
+    pacman::p_load(anytime,tidyverse,lubridate,plotly,cowplot,reshape2,expss,lattice,ggplot2,rpart,esquisse
+                   ,randomForest,liquidSVM,DMwR,kknn,C50,e1071,doParallel,zoo)
+  } else {
+    library('pacman')
+    pacman::p_load(anytime,tidyverse,lubridate,plotly,cowplot,reshape2,expss,lattice,ggplot2,rpart
+                   ,randomForest,liquidSVM,DMwR,kknn,C50,e1071,doParallel,zoo)
+  }
+  
+}
+
+
+
 
 #library(proj4)
 
