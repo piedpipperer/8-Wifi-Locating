@@ -21,15 +21,15 @@ libraries_function()
 #first read and binding of data.
 source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 
-Wifi1 <- retrieve_last_file(paste(getwd(),"/csv/",sep=""),"testData")  
+Wifi1 <- preprocess(retrieve_last_file(paste(getwd(),"/csv/",sep=""),"testData") ) 
 
 #Wifi1$KeySample <-  1:nrow(Wifi1) 
 Wifi1$TEST <- TRUE
 source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))
 
 #melting+preprocs+removing useless waps.
-TempWifiMelted1 <- WifiMelting(preprocess(
-  Wifi1))
+TempWifiMelted1 <- WifiMelting(
+  Wifi1)
 
 
 summary(TempWifiMelted1)
@@ -41,11 +41,23 @@ summary(TempWifiMelted1)
 # summary(
 # ValidationSet$BUILDING)
 
-ValidationSet2 <- TempWifiMelted1 %>% # unique()
-  tidyr::spread(WAP, SignalPow, convert = FALSE) 
+ValidationSet2 <- Wifi1 #%>% 
+ # tidyr::spread(WAP, SignalPow, convert = FALSE) 
+
+
+ValidationSet2$FLOOR <- "F4"
+ValidationSet2$FLOOR <- factor(ValidationSet2$FLOOR)
+levels(ValidationSet2$FLOOR) <- c("F0", "F1","F2","F3","F4")
+
+XGBoostBuildFitt <- readRDS("./models/BuildXGBoost.rds")
+
+ValidationSet2$BUILDINGID <-  predict(XGBoostBuildFitt, newdata = ValidationSet2)
 
 
 
+
+#wd on github folder
+setwd("./8-Wifi-Locating/")
 
 for (iteration2 in c("B0", "B1","B2"))
 {
@@ -53,7 +65,7 @@ for (iteration2 in c("B0", "B1","B2"))
   
   #we have to predict the floor per building now!
   
-  setwd("./8-Wifi-Locating/")
+
   IterFloorFit <-  readRDS(
     paste ("./models/FloorXGBoost_" , iteration2 , ".rds", sep = "")
   )
@@ -94,16 +106,11 @@ for (j2 in as.vector(FloorsToIterate$FLOOR))
 
 #ValidationSet2 %>% group_by(BUILDINGID,FLOOR) %>%  summarise(n = n()) 
 
-class(Wifi1)
-str(ValidationSet2)
-#falta el post processing!!
-#ValidationSet2$KeySample <-  1:nrow(ValidationSet2)
-
-summary(ValidationSet2$LONGITUDE)
-summary(ValidationSet2$LATITUDE)
-
-summary(ValidationSet2$FLOOR)
-summary(ValidationSet2$BUILDING)
+# summary(ValidationSet2$LONGITUDE)
+# summary(ValidationSet2$LATITUDE)
+# 
+# summary(ValidationSet2$FLOOR)
+# summary(ValidationSet2$BUILDING)
 
 
 
