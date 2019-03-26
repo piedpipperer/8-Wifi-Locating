@@ -14,6 +14,8 @@ output:
 # 			  token='DFDEF409C35E8F1DDB11A0FB24F312BF',
 # 			  secret='<SECRET>')
 
+
+#models to show.
 Models2 <-  c(#"svmLinear"
                 #,
                "knn"
@@ -26,40 +28,31 @@ Models2 <-  c(#"svmLinear"
           )
 
 
-
-  
-# Test <- read.csv2(file = "./csv/Daily.csv"
-#           )
+#folder of the github root. (my project is just one folder away)
+GitDirect <- "./8-Wifi-locating/"
 
 
-source("1 - Inicialization and Libraries.R")
+source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
+libraries_function()
 
-source("2 - Reading CSV Validation - Wifi1.R")
+#first read and binding of data.
+source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 
+Wifi1 <- retrieve_last_file(paste(getwd(),"/csv/",sep=""),"testData")  
   
 Wifi1$KeySample <-  1:nrow(Wifi1) 
-
-TempWifiMelted1 <- Wifi1  %>% melt( id.vars = c("KeySample","BUILDINGID","TIMESTAMP","FLOOR","PHONEID","USERID","RELATIVEPOSITION"
-                                                ,"SPACEID","LATITUDE","LONGITUDE")
-)  %>% 
-  mutate( value = value + 105) %>% 
-  mutate( value = case_when(value == 205 ~ 0,
-                            TRUE ~ value) 
-  )     
-# 
-# TempWifiMelted1
-#  summary(TempWifiMelted1)
-#  summary(Wifi1  %>% melt( id.vars = c("KeySample","BUILDINGID","TIMESTAMP","PHONEID","USERID","RELATIVEPOSITION"
-#                                                 ,"SPACEID","LATITUDE","LONGITUDE")
-# )  )
-
-#summary(Wifi1)
+Wifi1$TEST <- TRUE
+source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))
 
 
-colnames(TempWifiMelted1)[11] <- "WAP"
-colnames(TempWifiMelted1)[12] <- "SignalPow"
+#melting+preprocs+removing useless waps.
+TempWifiMelted1 <- WifiMelting(preprocess(
+  Wifi1))
+
+summary(TempWifiMelted1)
+
+
         
-# TempWifiMelted1 %>% filter (SignalPow > 70)
  
  
 #write down the useles waps
@@ -69,6 +62,7 @@ colnames(TempWifiMelted1)[12] <- "SignalPow"
   #   filter(SignalPow == 0)
   # write.csv(BadWAPs,"../csv/BadWaps.csv")
   
+
 ValidationSet <- TempWifiMelted1 %>% # unique()
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
 
