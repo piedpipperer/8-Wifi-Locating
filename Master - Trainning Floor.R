@@ -75,6 +75,8 @@ IterateDF3$KeySample <- NULL
 IterateDF3$BUILDINGID <- NULL
 #IterateDF3 %>% group_by(FLOOR) %>%    summarise(n = n()) %>% arrange(n)
 
+IterateDF3$FLOOR <- factor(IterateDF3$FLOOR)
+
 
 FloorControl <- caret::trainControl(method="repeatedcv"
                              ,classProbs = TRUE
