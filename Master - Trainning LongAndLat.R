@@ -61,7 +61,7 @@ source(paste(GitDirect,"4 - SelectUniqueLocs.R",sep=""))
 
 
 
-#### Trainnnig Floor ####
+#### Trainnnig Floor ####  executed in another Master File
 #iteration <- "B0"
 # TrainFloorAlls <- 
 #   RemoveBotheringWAPs(WifiMelted2 %>% filter(BUILDINGID %in% c(iteration)) %>% 

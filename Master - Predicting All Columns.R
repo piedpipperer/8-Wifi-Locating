@@ -6,12 +6,13 @@ cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 on.exit(stopCluster(cl))
 
+
+ModelEmployed <- "knn"
+approach <- "Minimal"
+
+
 #folder of the github root. (my project is just one folder away)
 GitDirect <- "./8-Wifi-locating/"
-
-
-ModelEmployed <- "rf"
-approach <- "Minimal"
 
 
 source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
@@ -23,8 +24,8 @@ source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 
 Wifi1 <- preprocess(retrieve_last_file(paste(getwd(),"/csv/",sep=""),"testData") ) 
 
-#Wifi1$KeySample <-  1:nrow(Wifi1) 
-Wifi1$TEST <- TRUE
+Wifi1$KeySample <-  1:nrow(Wifi1) 
+#Wifi1$TEST <- TRUE
 source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))
 
 #melting+preprocs+removing useless waps.
@@ -49,15 +50,12 @@ ValidationSet2$FLOOR <- "F4"
 ValidationSet2$FLOOR <- factor(ValidationSet2$FLOOR)
 levels(ValidationSet2$FLOOR) <- c("F0", "F1","F2","F3","F4")
 
-XGBoostBuildFitt <- readRDS("./models/BuildXGBoost.rds")
+XGBoostBuildFitt <- readRDS(paste(GitDirect,"./models/BuildXGBoost.rds",sep=""))
 
 ValidationSet2$BUILDINGID <-  predict(XGBoostBuildFitt, newdata = ValidationSet2)
 
 
 
-
-#wd on github folder
-setwd("./8-Wifi-Locating/")
 
 for (iteration2 in c("B0", "B1","B2"))
 {
@@ -67,7 +65,7 @@ for (iteration2 in c("B0", "B1","B2"))
   
 
   IterFloorFit <-  readRDS(
-    paste ("./models/FloorXGBoost_" , iteration2 , ".rds", sep = "")
+    paste (GitDirect,"./models/FloorXGBoost_" , iteration2 , ".rds", sep = "")
   )
   ValidationSet2[ValidationSet2$BUILDINGID==iteration2,]$FLOOR  <-  predict(IterFloorFit, newdata = ValidationSet2 %>%    filter(BUILDINGID == iteration2))
   
@@ -86,15 +84,15 @@ FloorsToIterate <-
 for (j2 in as.vector(FloorsToIterate$FLOOR))
 {
   #iteration2 <- "B0"
-  #j2 <- 'F0'
+  #j2 <- 'F1'
   
   LongModelFit <- readRDS(
-    paste ("./models/" , approach, "Long_" , ModelEmployed , "_" , j2 , "_" , iteration2 , ".rds", sep = "")
+    paste (GitDirect,"./models/" , approach, "Long_" , ModelEmployed , "_" , j2 , "_" , iteration2 , ".rds", sep = "")
   )
   ValidationSet2[which(ValidationSet2$BUILDINGID==iteration2 & ValidationSet2$FLOOR==j2),]$LONGITUDE  <-  predict(LongModelFit, newdata =      ValidationSet2 %>%    filter(BUILDINGID == iteration2) %>%    filter(FLOOR == j2)) #3900
   
   LatModelFit <- readRDS(
-    paste ("./models/" , approach, "Lat_" , ModelEmployed , "_" , j2 , "_" , iteration2 , ".rds", sep = "")
+    paste (GitDirect,"./models/" , approach, "Lat_" , ModelEmployed , "_" , j2 , "_" , iteration2 , ".rds", sep = "")
   )
   ValidationSet2[which(ValidationSet2$BUILDINGID==iteration2 & ValidationSet2$FLOOR==j2),]$LATITUDE  <-  predict(LatModelFit, newdata =      ValidationSet2 %>%    filter(BUILDINGID == iteration2) %>%    filter(FLOOR == j2)) #3900
   
@@ -113,12 +111,11 @@ for (j2 in as.vector(FloorsToIterate$FLOOR))
 # summary(ValidationSet2$BUILDING)
 
 
-
-
-
 #ValidationSet2 %>% dplyr::select(as.numeric(substr(FLOOR, 1,  4)))
 
 
+
+#post processing of the modeling:
 levels(ValidationSet2$FLOOR) <- c(0, 1,2,3,4)
 ValidationSet2$FLOOR <- as.numeric(ValidationSet2$FLOOR)-1
 
@@ -134,18 +131,16 @@ SetToCSV <- ValidationSet2 %>% arrange(KeySample) %>% dplyr::select(LATITUDE,LON
 #%>%   mutate(FLOOR = as.numeric(FLOOR))
 str(SetToCSV)
 SetToCSV$KeySample <- NULL
-setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
+
 summary(SetToCSV)
 write.csv(SetToCSV,
-          paste("../csv/"  , approach, "_" ,ModelEmployed, "_ValidationSetJordi.csv",  sep = ""
+          paste("./csv/"  , approach, "_" ,ModelEmployed, "_ValidationSetPiedPipperer.csv",  sep = ""
                ) , row.names = FALSE 
 )
 
 
 # 
-# Wifi4Visual <- SetToCSV %>% melt( id.vars = c("LONGITUDE","LATITUDE","FLOOR","BUILDINGID","SPACEID"
-#                                               ,"RELATIVEPOSITION","USERID","PHONEID",
-#                                               "TIMESTAMP","KeySample") )  %>% filter(value != 0) %>% unique()
+# Wifi4Visual <- TempWifiMelted1  %>% filter(value != 0) %>% unique()
 # 
 # colnames(Wifi4Visual)[11] <- "WAP"
 # colnames(Wifi4Visual)[12] <- "SignalPow"
