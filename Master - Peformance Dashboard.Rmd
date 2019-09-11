@@ -15,15 +15,17 @@ output:
 # 			  secret='<SECRET>')
 
 
- R_Pro_wd <- getwd() #"D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/"
- setwd( R_Pro_wd #getwd()
+ R_Pro_wd <- # getwd()
+  "D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/"
+  #"D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/"
+  setwd( R_Pro_wd 
  )
 #getwd()
 
 #project directory, one away from github folder
-GitDirect <- "./8-Wifi-locating/" #"./" #"./8-Wifi-locating/"
+GitDirect <- "./" # #"./8-Wifi-locating/"
 
-source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
+source(paste(R_Pro_wd,GitDirect,"1 - Inicialization and Libraries.R",sep=""))
 libraries_function()
 
 #models to show.
@@ -78,14 +80,16 @@ ValidationSet$FLOOR <- "F4"
  ValidationSet$FLOOR <- factor(ValidationSet$FLOOR)
 levels(ValidationSet$FLOOR) <- c("F0", "F1","F2","F3","F4")
  
- XGBoostBuildFitt <- readRDS(paste(GitDirect,"./models/BuildXGBoost.rds",sep=""))
+
+XGBoostBuildFitt <- readRDS(paste(GitDirect,"./models/BuildXGBoost.rds",sep=""))
 
 ValidProbs <- predict(XGBoostBuildFitt, newdata = ValidationSet
                       , type = "prob")
 
-
-
 ValidationSet$BUILDINGID <-  predict(XGBoostBuildFitt, newdata = ValidationSet)
+
+
+
 
 #summary(ValidationSet$BUILDINGID)
 #  B0   B1   B2 
