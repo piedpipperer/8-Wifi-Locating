@@ -15,13 +15,13 @@ output:
 # 			  secret='<SECRET>')
 
 
- R_Pro_wd <- "D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/"
- setwd(R_Pro_wd #getwd()
-       )
+ R_Pro_wd <- getwd() #"D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/"
+ setwd( R_Pro_wd #getwd()
+ )
 #getwd()
 
 #project directory, one away from github folder
-GitDirect <- "./8-Wifi-locating/"
+GitDirect <- "./8-Wifi-locating/" #"./" #"./8-Wifi-locating/"
 
 source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
 libraries_function()
@@ -39,8 +39,6 @@ Models2 <-  c(#"svmLinear"
           )
 
 
-#folder of the github root. (my project is just one folder away)
-GitDirect <- "./8-Wifi-locating/"
 
 source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
 libraries_function()
@@ -52,8 +50,8 @@ Wifi1 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""
   
 Wifi1$KeySample <-  1:nrow(Wifi1) 
 Wifi1$TEST <- TRUE
-source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))
 
+source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))
 
 #melting+preprocs+removing useless waps.
 TempWifiMelted1 <- WifiMelting(
@@ -233,8 +231,7 @@ prueba2
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
-
+  setwd(R_Pro_wd)
      
 renderPlot({
     
@@ -242,8 +239,8 @@ renderPlot({
   #   select (Result) )
   ValidationFloorSet <- ValidationSet %>% filter(BUILDINGID == input$Building1)
 
-  setwd("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating")
- FloorFit <-  readRDS( 
+  setwd(R_Pro_wd)
+  FloorFit <-  readRDS( 
   paste (GitDirect,"/models/FloorXGBoost_" , input$Building1 , ".rds", sep = "")
     )
 
