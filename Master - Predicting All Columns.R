@@ -22,7 +22,7 @@ libraries_function()
 #first read and binding of data.
 source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 
-Wifi1 <- preprocess(retrieve_last_file(paste(getwd(),"/csv/",sep=""),"testData") ) 
+Wifi1 <- preprocess(retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"testData") ) 
 
 Wifi1$KeySample <-  1:nrow(Wifi1) 
 #Wifi1$TEST <- TRUE

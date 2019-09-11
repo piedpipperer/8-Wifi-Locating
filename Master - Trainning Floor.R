@@ -17,8 +17,8 @@ libraries_function()
 #first read and binding of data.
 source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 #summary(Wifi0)
-TrainWifi0 <- retrieve_last_file(paste(getwd(),"/csv/",sep=""),"trainingData")
-TestWifi0 <- retrieve_last_file(paste(getwd(),"/csv/",sep=""),"validationData")
+TrainWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"trainingData")
+TestWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"validationData")
 
 TestWifi0$TEST <- TRUE 
 TrainWifi0$TEST <- FALSE 
