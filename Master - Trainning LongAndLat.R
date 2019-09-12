@@ -10,7 +10,13 @@ registerDoParallel(cl)
 on.exit(stopCluster(cl))
 
 #folder of the github root. (my project is just one folder away)
-GitDirect <- "./8-Wifi-locating/"
+library(rstudioapi)
+current_path <- #"D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/PEPE.R" 
+  rstudioapi::getActiveDocumentContext()$path 
+
+setwd(dirname(current_path))
+
+GitDirect <- "./"
 
 
 source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
