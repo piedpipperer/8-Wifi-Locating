@@ -8,12 +8,20 @@ retrieve_last_file <- function(directory, key_word = "validationData") {
     list.files(directory, pattern = paste(key_word) )
   )
   
-  dataset <- read.csv(paste(directory, row.names(df %>% sample_n(1)),sep=""), header = T, sep = ",")
-  
-  return(dataset)
-  
+  if (df %>% count() > 1) 
+  {
+    dataset <- read.csv(paste(directory, row.names(df %>% sample_n(1)),sep=""), header = T, sep = ",")
+    return(dataset)
+  }
+  else 
+  {
+    return(FALSE)
+  }
 }
 
+#test:
+retrieve_last_file("/csv/","testData")
+list.files("/csv/", pattern = paste("testData") )
 
 # 1st preprocessing function
 

@@ -5,27 +5,37 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    source_code: https://github.com/piedpipperer/8-Wifi-Locating
+    
 ---
 
 ```{r setup, include=FALSE}
 
+#
 
 # rsconnect::setAccountInfo(name='piedpipper23',
 # 			  token='DFDEF409C35E8F1DDB11A0FB24F312BF',
 # 			  secret='<SECRET>')
 
+#library(rstudioapi)
+current_path <- "D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/PEPE.R" 
+#  rstudioapi::getActiveDocumentContext()$path 
 
- R_Pro_wd <- # getwd()
-  "D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/"
-  #"D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/"
-  setwd( R_Pro_wd 
- )
-#getwd()
+
+#R_Pro_wd <- dirname(current_path)
+R_Pro_wd <- "D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/"
+
+#setwd(R_Pro_wd)
+
+#setwd("..")
+#rm(current_path)
+
+#?knitr::knit
 
 #project directory, one away from github folder
 GitDirect <- "./" # #"./8-Wifi-locating/"
 
-source(paste(R_Pro_wd,GitDirect,"1 - Inicialization and Libraries.R",sep=""))
+source(paste(GitDirect,"1 - Inicialization and Libraries.R",sep=""))
 libraries_function()
 
 #models to show.
@@ -48,8 +58,11 @@ libraries_function()
 #first read and binding of data.
 source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 
-Wifi1 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"testData")  
+ # Wifi1 <- retrieve_last_file("https://github.com/piedpipperer/8-Wifi-Locating/tree/master/csv/"
+ #                             ,"testData")
   
+ Wifi1 <- read.csv("./csv/testData.csv",  header = T, sep = ",")
+
 Wifi1$KeySample <-  1:nrow(Wifi1) 
 Wifi1$TEST <- TRUE
 
@@ -87,8 +100,6 @@ ValidProbs <- predict(XGBoostBuildFitt, newdata = ValidationSet
                       , type = "prob")
 
 ValidationSet$BUILDINGID <-  predict(XGBoostBuildFitt, newdata = ValidationSet)
-
-
 
 
 #summary(ValidationSet$BUILDINGID)
@@ -184,9 +195,9 @@ renderPlot({
   #   select (Result) )
   ValidationFloorSet <- ValidationSet %>% filter(BUILDINGID == input$Building1)
 
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
  FloorFit <-  readRDS( 
-  paste (GitDirect,"/models/FloorXGBoost_" , input$Building1 , ".rds", sep = "")
+  paste (GitDirect,"./models/FloorXGBoost_" , input$Building1 , ".rds", sep = "")
     )
 
  # prueba2 <- ggplot(data = ValidationFloorSet) +
@@ -235,7 +246,7 @@ prueba2
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
      
 renderPlot({
     
@@ -243,7 +254,7 @@ renderPlot({
   #   select (Result) )
   ValidationFloorSet <- ValidationSet %>% filter(BUILDINGID == input$Building1)
 
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
   FloorFit <-  readRDS( 
   paste (GitDirect,"/models/FloorXGBoost_" , input$Building1 , ".rds", sep = "")
     )
@@ -296,7 +307,7 @@ Column {data-width=450}
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -305,7 +316,7 @@ renderPlot({
   #   select (Result) )
   ValidationFloorSet <- ValidationSet %>% filter(BUILDINGID == input$Building1)
 
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
  FloorFit <-  readRDS( 
   paste (GitDirect,"/models/FloorXGBoost_" , input$Building1 , ".rds", sep = "")
     )
@@ -356,7 +367,7 @@ prueba2
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -365,7 +376,7 @@ renderPlot({
   #   select (Result) )
   ValidationFloorSet <- ValidationSet %>% filter(BUILDINGID == input$Building1)
 
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
  FloorFit <-  readRDS( 
   paste (GitDirect,"/models/FloorXGBoost_" , input$Building1 , ".rds", sep = "")
     )
@@ -415,7 +426,7 @@ prueba2
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -424,7 +435,7 @@ renderPlot({
   #   select (Result) )
   ValidationFloorSet <- ValidationSet %>% filter(BUILDINGID == input$Building1)
 
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
  FloorFit <-  readRDS( 
   paste (GitDirect,"/models/FloorXGBoost_" , input$Building1 , ".rds", sep = "")
     )
@@ -509,7 +520,7 @@ Column {data-width=450}
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -523,7 +534,7 @@ renderPlot({
    for (pepe in 1:length(Models2))
    {
     # pepe <- 1
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
      if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
  ModelsLAT2.list[[pepe]] <-  readRDS( 
   paste (GitDirect,"/models/" , approach2, "Lat_" , Models2[pepe] , "_" ,input$Floor
@@ -570,7 +581,7 @@ renderPlot({
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -584,7 +595,7 @@ renderPlot({
    for (pepe in 1:length(Models2))
    {
     # pepe <- 1
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
         if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
  ModelsLAT2.list[[pepe]] <-  readRDS( 
   paste (GitDirect,"/models/" , approach2, "Lat_" , Models2[pepe] , "_" , input$Floor
@@ -631,7 +642,7 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -645,7 +656,7 @@ renderPlot({
    for (pepe in 1:length(Models2))
    {
     # pepe <- 1
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
     if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
  ModelsLAT2.list[[pepe]] <-  readRDS( 
   paste (GitDirect,"/models/" , approach2, "Lat_" , Models2[pepe] , "_" , input$Floor
@@ -694,7 +705,7 @@ Column {data-width=450}
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -708,7 +719,7 @@ renderPlot({
    for (pepe in 1:length(Models2))
    {
     # pepe <- 1
-  setwd(R_Pro_wd)
+  #setwd(R_Pro_wd)
 if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
  ModelsLAT2.list[[pepe]] <-  readRDS( 
   paste (GitDirect,"/models/" , approach2, "Long_" , Models2[pepe] , "_" ,input$Floor
@@ -836,7 +847,7 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
 # SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
 #               Result=c(1,2,3,4)))
 
- setwd(R_Pro_wd)
+ #setwd(R_Pro_wd)
 
      
 renderPlot({
@@ -850,7 +861,7 @@ renderPlot({
    for (pepe in 1:length(Models2))
    {
     # pepe <- 1
-  setwd(R_Pro_wd)
+ # setwd(R_Pro_wd)
           if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- input$approach1}
  ModelsLAT2.list[[pepe]] <-  readRDS( 
   paste (GitDirect,"/models/" , approach2, "Long_" , Models2[pepe] , "_" , input$Floor
