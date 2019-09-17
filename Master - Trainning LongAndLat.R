@@ -26,7 +26,7 @@ libraries_function()
 source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 #summary(Wifi0)
 TrainWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"trainingData")
-TestWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"validationData")
+TestWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"testData")
 
 TestWifi0$TEST <- TRUE 
 TrainWifi0$TEST <- FALSE 
@@ -42,11 +42,6 @@ source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))
 WifiMelted <- RemoveBotheringWAPs(   #ONLY executed in trainnning, not in predicting
                 WifiMelting(Wifi0)
                                   )
-
-
-#writing csv with coordinates 4 viz:
-Wifi4Visual <- WifiMelted %>% filter(SignalPow != 0) %>% unique()
-source("99 - WritingSpatialCSV - AllWifiAgg.R")
 
 
 
@@ -99,6 +94,7 @@ WifiMelt2 <- WifiMelted  %>%
 WifiUnMelt <- WifiMelt2   %>% 
   tidyr::spread(WAP, SignalPow, convert = FALSE) 
 
+
 if (approach == "OnlyTrain")
 { 
   WifiMelted2 <- WifiMelted %>% filter(TEST == FALSE)
@@ -131,7 +127,7 @@ if (approach == "OnlyTrain")
   TrainFloorAlls$FLOOR <- factor(TrainFloorAlls$FLOOR)
   
 
-  #lat and long trainning/validation.
+  #selecting Floors we have to iterate in for this Building.
   FloorsToIterate <- 
     TrainFloorAlls  %>% dplyr::select(FLOOR) %>% #group_by(FLOOR) %>% ungroup() %>%
    unique()
@@ -150,28 +146,16 @@ if (approach == "OnlyTrain")
     TrainLong <- 
       RemoveBotheringWAPs(WifiMelted2 %>% filter(BUILDINGID %in% c(iteration)) %>% filter(FLOOR %in% c(j)) %>% 
                             dplyr::select(BUILDINGID,LONGITUDE,LATITUDE,FLOOR, WAP, SignalPow, KeySample) 
-      )  %>% tidyr::spread(WAP, SignalPow, convert = FALSE)
-   
-    TrainLat <- TrainLong
+      )  %>% tidyr::spread(WAP, SignalPow, convert = FALSE) %>% dplyr::select (-BUILDINGID, -KeySample, -FLOOR)
+
+    TrainLat <- TrainLong %>% dplyr::select (-LONGITUDE)
     
-    TrainNN <- TrainLong
-    TrainNN$BUILDINGID <- NULL
-    TrainNN$KeySample <- NULL
-    TrainNN$FLOOR <- NULL
-    
-    #TrainLatLong %>% select(FLOOR,BUILDINGID) %>% group_by(FLOOR,BUILDINGID)  %>% unique()
-    TrainLong$BUILDINGID <- NULL
-    TrainLong$KeySample <- NULL
-    TrainLong$FLOOR <- NULL
     TrainLong$LATITUDE <- NULL
+    #making sure the datasets only count on the label they have to predict independenly, and dont use Latitude to predict Longit and
+    #the other way arround either.
     
-    
-    #TrainLatLong %>% select(FLOOR,BUILDINGID) %>% group_by(FLOOR,BUILDINGID)  %>% unique()
-    TrainLat$BUILDINGID <- NULL
-    TrainLat$KeySample <- NULL
-    TrainLat$FLOOR <- NULL
-    TrainLat$LONGITUDE <- NULL
-    
+
+    #choose the models to train from here.
     Models <- c(##"vbmpRadial" #,#"lasso"#,#"svmLinear"#  ,"relaxo"
                # ,"foba"
                 #,

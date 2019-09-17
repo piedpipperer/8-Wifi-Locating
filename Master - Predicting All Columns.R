@@ -31,6 +31,9 @@ source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 
 Wifi1 <- preprocess(retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"testData") ) 
 
+
+
+
 Wifi1$KeySample <-  1:nrow(Wifi1) 
 #Wifi1$TEST <- TRUE
 source(paste(GitDirect,"3 - Melting&Update - WifiMelted.R",sep=""))

@@ -7,8 +7,8 @@ cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 on.exit(stopCluster(cl))
 
-#folder of the github root. (my project is just one folder away)
-#folder of the github root. (my project is just one folder away)
+
+#folder config (to work on any computer, all files are in github folder)
 library(rstudioapi)
 current_path <- #"D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-locating/PEPE.R" 
   rstudioapi::getActiveDocumentContext()$path 
@@ -25,7 +25,7 @@ libraries_function()
 source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
 #summary(Wifi0)
 TrainWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"trainingData")
-TestWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"validationData")
+TestWifi0 <- retrieve_last_file(paste(paste(getwd(),GitDirect,sep=""),"/csv/",sep=""),"testData")
 
 TestWifi0$TEST <- TRUE 
 TrainWifi0$TEST <- FALSE 
@@ -70,16 +70,13 @@ TrainFloorAlls <-
 #source(paste(GitDirect,"8 - Trainning Floor.R",sep=""))
 
 
-IterateDF2 <- TakeNumberUniqueLocations(TrainFloorAlls,18)
+IterateDF2 <- TakeNumberUniqueLocations(TrainFloorAlls,18 #number of iterations to take all unique locations
+                                        )
 TestIterate <- TrainFloorAlls %>%
   subset(!KeySample %in% IterateDF2$KeySample)
 
-IterateDF3 <- IterateDF2 %>% ungroup()
-IterateDF3$LONGITUDE <- NULL
-IterateDF3$LATITUDE <- NULL
+IterateDF3 <- IterateDF2 %>% ungroup() %>% select (-LONGITUDE,-LATITUDE,-KeySample,-BUILDINGID)
 
-IterateDF3$KeySample <- NULL
-IterateDF3$BUILDINGID <- NULL
 #IterateDF3 %>% group_by(FLOOR) %>%    summarise(n = n()) %>% arrange(n)
 
 IterateDF3$FLOOR <- factor(IterateDF3$FLOOR)

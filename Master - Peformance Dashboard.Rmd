@@ -61,6 +61,7 @@ source(paste(GitDirect,"2 - Reading CSV.R",sep=""))
  # Wifi1 <- retrieve_last_file("https://github.com/piedpipperer/8-Wifi-Locating/tree/master/csv/"
  #                             ,"testData")
   
+#finaly not using the function meant for this for issues with WD (flex markdown):
  Wifi1 <- read.csv("./csv/testData.csv",  header = T, sep = ",")
 
 Wifi1$KeySample <-  1:nrow(Wifi1) 
@@ -275,16 +276,6 @@ prueba2 <- ggplot(data = ValidFloorProbs) +
 
 prueba2
 
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
-  
 })
 
 
@@ -336,16 +327,6 @@ prueba2 <- ggplot(data = ValidFloorProbs) +
 #prueba <- prueba + aes(y = B1)
 
 prueba2
-
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -397,15 +378,6 @@ prueba2 <- ggplot(data = ValidFloorProbs) +
 
 prueba2
 
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -456,15 +428,6 @@ prueba2 <- ggplot(data = ValidFloorProbs) +
 
 prueba2
 
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -483,10 +446,6 @@ Column {.sidebar data-width=150}
 
 ```{r}
 
-  
-#selectInput("Submet", label = "Submet:",
-#            choices = c("AC" ,"Rest","Laundry","Kitchen"), selected = "AC")
-
 selectInput("Building", label = "Building :",
             choices = c("B0","B1","B2"), selected = "B0")
 
@@ -497,11 +456,6 @@ selectInput("approach1", label = "Approach :",
             choices = c("Train&Test","Minimal","OnlyTrain"), selected = "Train&Test")
 
 
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
-
-# sliderInput("bw_adjust", label = "Bandwidth adjustment:",
-#             min = 0.2, max = 2, value = 1, step = 0.2)
 ```
 
 Column {data-width=450}
@@ -511,14 +465,6 @@ Column {data-width=450}
 ### Latitude Predictions  RSQUARED
 
 ```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
 
  #setwd(R_Pro_wd)
 
@@ -551,16 +497,6 @@ renderPlot({
 
  bwplot(models, metric="Rsquared")
 
-
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -572,14 +508,6 @@ renderPlot({
 ###  Latitude RMSE
 
 ```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
 
  #setwd(R_Pro_wd)
 
@@ -614,15 +542,6 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
 
 
 
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -633,14 +552,6 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
 ###  Latitude MAE
 
 ```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
 
  #setwd(R_Pro_wd)
 
@@ -673,17 +584,6 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
 
 
  bwplot(models, metric="MAE")
-
-
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -696,14 +596,6 @@ Column {data-width=450}
 ###  Longitude RSQUARED
 
 ```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
 
  #setwd(R_Pro_wd)
 
@@ -736,16 +628,6 @@ if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- inp
 
  bwplot(models, metric="Rsquared")
 
-
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -757,14 +639,7 @@ if (input$approach1 == "Train&Test") { approach2 <- "" } else { approach2 <- inp
 ###  Longitude RMSE
 
 ```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
+
 
  #setwd("d:/dropbox/Dropbox/ubiqum/8. Wifi Locating")
 
@@ -816,18 +691,7 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
 )
 
   bwplot(models, metric="RMSE")
-
-
-
-  #ACplot <- autoplot(ValidFloorProbs)
   
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
   
 })
 
@@ -838,14 +702,6 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
 ###  Longitude MAE
 
 ```{r include=TRUE, results='asis'}
-# prueba <- ggplot(data = Test) +
-#   aes(x = year, y = SubMet_Energy) +
-#   geom_point(color = "#0c4c8a") +
-#   theme_minimal()
-# 
-# ggplotly(prueba)
-# SeasonDF = data.frame(list(Name=c("Autunm","Winter", "Spring","Summer"), 
-#               Result=c(1,2,3,4)))
 
  #setwd(R_Pro_wd)
 
@@ -880,16 +736,6 @@ models <- resamples( ModelsLAT2.list, modelNames = Models2
  bwplot(models, metric="MAE")
 
 
-  #ACplot <- autoplot(ValidFloorProbs)
-  
-  
-  # ACplot <- ACplot + ggtitle("Energy in AC&Heating x Hour for 1 Day")
-  #   ACplot <- ACplot + xlim(c(2010.50+(padding[1]*0.25), 2010.75+(padding[1]*0.25)))
-  # ACplot <- ACplot  + xlab(input$Season) #+ scale_x_discrete(name =input$Season, limits=c(2010.75, 2011))
-  # ACplot <- ACplot + ylab("Energy Consumption Wh")
-
-  #ACplot
-  
 })
 
 

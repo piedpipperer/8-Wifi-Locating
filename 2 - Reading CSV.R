@@ -8,7 +8,7 @@ retrieve_last_file <- function(directory, key_word = "validationData") {
     list.files(directory, pattern = paste(key_word) )
   )
   
-  if (df %>% count() > 1) 
+  if (df %>% count() >= 1) 
   {
     dataset <- read.csv(paste(directory, row.names(df %>% sample_n(1)),sep=""), header = T, sep = ",")
     return(dataset)
@@ -21,6 +21,7 @@ retrieve_last_file <- function(directory, key_word = "validationData") {
 
 #test:
 retrieve_last_file("/csv/","testData")
+retrieve_last_file("D:/dropbox/Dropbox/ubiqum/8. Wifi Locating/8-Wifi-Locating/../","testAndtrain")
 list.files("/csv/", pattern = paste("testData") )
 
 # 1st preprocessing function
