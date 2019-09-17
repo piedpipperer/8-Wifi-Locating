@@ -144,7 +144,7 @@ SetToCSV$KeySample <- NULL
 
 summary(SetToCSV)
 write.csv(SetToCSV,
-          paste("./csv/"  , approach, "_" ,ModelEmployed, "_ValidationSetPiedPipperer.csv",  sep = ""
+          paste("./csv/"  , approach, "_" ,ModelEmployed, "_ValidationSetJordi.csv",  sep = ""
                ) , row.names = FALSE 
 )
 
